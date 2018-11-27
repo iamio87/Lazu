@@ -20,11 +20,13 @@
 	// routes = require('./server/routes');
     express = require('express');
     session = require('express-session');
-    timeout = require('connect-timeout');
+//    timeout = require('connect-timeout');
 	bodyParser = require('body-parser');
-	const Model = require("../static/models.js");
-	const STATIC = require("../static/static-vars.json"); //// Some definitions to standardize Delta operations
-	const Delta = require("../static/delta.js").default;
+	const Model = require("./static/models.js");
+	const STATIC = require("./static/static-vars.json"); //// Some definitions to standardize Delta operations
+	const DB = require("./db/index");
+	const Delta = require("./static/delta.js").default;
+	console.log('db', DB);
 
 /*	var promise = function(func){
 		new Promise( (resolve, reject) => {
@@ -42,10 +44,10 @@
     };
 
     // Create our application and register its dependencies
-    app = express();
+	app = express();
     app.use(bodyParser.json());
     app.use(session(sessionConfig));
-    app.use(timeout('30s'));
+//    app.use(timeout('30s'));
 
     // Register our OAUTH2 routes.
 /*    app.get('/auth/authenticated', routes.auth.getAuthenticated);
@@ -58,8 +60,13 @@
     app.get('/api/gifts/:giftId', routes.auth.checkSession, routes.api.getGift);*/
 
     // Lazu-specific routes
-    app.use('/static', express.static('../static') )
+    app.use('/static', express.static('./static') )
     app.get('/workspace/:projectID', function(req, res){
+		console.log(11, req.session);
+		req.session["user"] = 1;
+		DB.User.findByPk(req.params['projectID']).then((rez)=>{
+//			console.log(66, rez, Object.keys(rez), rez["dataValues"], rez.save);
+		});
 		const stream = fs.createReadStream('templates/workspace.html');
 		res.writeHead(200, {'Content-Type': 'text/html'} )
 		stream.pipe(res);
@@ -214,7 +221,7 @@
     
     // Display the startup message.
     function onListen() {
-        console.log('SKY API Auth Code Flow Tutorial app running for http://localhost:%s/', process.env.PORT);
+        console.log('Lazu is up and running. http://localhost:%s/', process.env.PORT);
     }
 
     // Start the server.

@@ -1,0 +1,134 @@
+<meta charset="UTF-8">
+<!DOCTYPE html>
+<html>
+<head>
+  <script type="text/javascript">
+    Lawccess = {
+    static:'/static/',
+    context: {
+    location:'outline',
+    'project':1,
+    'passport':{
+    'style':'string'
+    },
+    }
+    
+    }
+</script>
+<script src="/static/signal.js"></script><!-- Signal acts as Grand Central for event-driven UI updates -->
+<script type="text/javascript" src="/static/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="/static/jquery-ui-1.10.3.js"></script><!-- needed for nested sortable -->
+<script type="text/javascript" src="/static/jquery.ui.touch-punch.js"></script><!-- apparently helps with mobile? -->
+<script type="text/javascript" src="/static/nested-sortable.2-alpha.js"></script><!-- This makes our outline view possible. -->
+
+<script src="/static/post.js"></script><!-- utility to accomodate CSRF in POST requests -->
+<script src="/static/hashlist.js"></script><!-- hash function for order lists.  -->
+<!--<script src="/static/util.js"></script><!-- miscenllaneous utilities -->
+<!--<script src="/static/response.js"></script><!-- Handles server response from attempted edits from all views -->
+<script src="/static/drag.js"></script><!-- utility to for handling drag and drop features  -->
+<script src="/static/dropdown.js"></script><!-- Dropdown is a special utility that builds nested select menus. This is currently used in source.js for selecting source type. -->
+<!--<script src="/static/toolbar.js"></script><!-- Toolbar for editing markup in contentEditable divs. -->
+<script src="/static/shadow.js"></script><!-- test for Editor shadow DOM --> <!-- delete me -->
+<script src="/static/laz.js"></script><!-- citeproc replacement -->
+<script src="/static/citation_popup.js"></script><!-- creates small window showing bibliographic details of a citation when hovered over.  -->
+<script src="/static/app.js"></script><!-- Signal acts as Grand Central for event-driven UI updates -->
+<!--<script src="/static/lawccess_data.js"></script><!-- retrieves project data. Also defines Lawccess.Controller which is responsible for switching between the 4 main views (Project, Sources, Source, and Outline). -->
+<script src="/static/relationships.js"></script><!-- Handles relationships between citations and outlineElements.  -->
+<script src="/static/js/users.js"></script><!-- get info about users who have permissions related to the project. -->
+<script src="/static/update.js"></script><!-- response.js, when it encounters a state conflict with an attempted edit, receives the new state from server, and asks update.js to update the fields with the updated info. -->
+<script src="/static/caret/jquery.caret.js"></script><!-- utility that resets caret position after dropping a Citation into an Outline node's description. I could probably write a better one. -->
+<script src="/static/sizeof.compressed.js"></script><!-- Checks the size of memory consumed by JSON in browser memory. We need to check size of Lawccess.data before attempting to save it to local storage. -->
+
+<link rel="stylesheet" type="text/css" href="/static//css/toolbar.css"><!--   -->
+<link rel="stylesheet" type="text/css" href="/static//css/versioning.css"><!--   -->
+<link rel="stylesheet" type="text/css" href="/static//css/source.css"><!--   -->
+<LINK href="/static/css/nested-sortable.css" rel="stylesheet" type="text/css">
+<LINK href="/static/css/outline.css" rel="stylesheet" type="text/css">
+<LINK href="/static/css/editable_list.css" rel="stylesheet" type="text/css">
+<LINK href="/static/css/dropdown.css" rel="stylesheet" type="text/css">
+<LINK href="/static/css/alert.css" rel="stylesheet" type="text/css">
+
+<LINK href="/static/css/jquery-ui.css" rel="stylesheet" type="text/css">
+<LINK href="/static/css/ref_and_citation.css" rel="stylesheet" />
+<LINK href="/static/css/sources.css" rel="stylesheet" />
+<LINK href="/static/css/outline_citation_bar.css" rel="stylesheet" />
+</head>
+<body>
+<div id="main">
+
+
+<style>
+  #focus_writer {display:none;}
+  #italic {font-style:italic}
+  #bold {font-weight:bold}
+  #underline {font-style:underline;}
+</style>
+
+
+<section id="source-container">
+</section><!-- section#source -->
+<section id="outline-container">
+
+</section>
+<section id="sources-container">
+
+</section>
+<input type="button" id="focusStealer" style="display:fixed;background:none;border-style:none;width:0px;height:1px;">
+</div><!-- #main -->
+
+</section>
+
+<script type="text/javascript" src="/static//js/source.js"></script>
+<script src="/static//js/outline.js"></script>
+<script src="/static//js/outline_menu.js"></script>
+<script src="/static//js/outline_citation_bar.js"></script>
+<script src="/static//js/outline_heading_menu.js"></script>
+<script src="/static//js/sources.js"></script>
+<script src="/static//js/project_view.js"></script>
+
+<script src="/static/test.js"></script><!-- Suite for testing application -->
+<script>
+/*
+citeprocSys = {
+  retrieveLocale: function (lang){
+		//// This synchronous query pains me, but citeproc.js requires it for now.
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', Lawccess.staticURL+'data/locales/locales-'+lang+'.xml', false);
+    xhr.send(null);
+    return xhr.responseText;
+  },
+  retrieveItem: function(id){
+	if (typeof(Lawccess.data.sources[id]) == "undefined"){
+		return {"title":"deleted source","id":id} //// outline markup can have references to deleted sources.
+	}
+    return Lawccess.data.sources[id].bibliography;
+  }
+};
+var citeproc
+var stylePath = "/"+Lawccess.context.passport.style.path;
+try {
+	L.loadStyle(stylePath)
+} catch (e) {
+	console.log("backupStyle")
+	L.loadStyle("/static/data/styles/styles-distribution/default.csl")
+}
+L.loadLocale("/static/data/locales/locales-en-US.xml")
+setTimeout(function(){
+		Source.Bibliography.updateStyle()
+		Signal.send("application","finished")
+}, 1000)
+//stylePath = "/static/data/locales/locales-en-US.xml"
+/*$.get(stylePath, function(style){
+	// Instantiate processor
+	try {
+		citeproc = new CSL.Engine(citeprocSys, style);
+		Source.Bibliography.updateStyle()
+		Signal.send("application","finished")
+	} catch (e) {
+//		Signal.send("CSLstyle","invalid-style")
+	}
+})*/
+
+</script>
+</body>
+</html>

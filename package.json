@@ -1,0 +1,28 @@
+{
+  "name": "lazu",
+  "version": "0.0.3",
+  "description": "Lazu server",
+  "main": "index.js",
+  "dependencies": {
+    "bcrypt": "^3.0.2",
+    "express": "^4.16.4",
+    "express-es6-template-engine": "^2.1.6",
+    "express-promise-router": "^3.0.3",
+    "express-session": "^1.15.6",
+    "graceful-fs": "^4.1.11",
+    "jszip": "^3.1.5",
+    "mongoose": "^5.3.12",
+    "pg": "^7.6.1",
+    "pg-hstore": "^2.3.2",
+    "proper-lockfile": "^3.0.2",
+    "retry": "^0.12.0",
+    "sequelize": "^4.41.2",
+    "waterline": "^0.13.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
