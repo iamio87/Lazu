@@ -1,34 +1,6 @@
 var Sequelize = require('sequelize');
 
-module.exports.Project = {
-    fields:{
-        id : {
-            primaryKey      : true,
-            autoIncrement   : true,
-            type            : Sequelize.INTEGER
-        },
-        uuid: Sequelize.UUID,
-        title: Sequelize.STRING,
-        description: Sequelize.STRING,
-        passport: Sequelize.JSONB,
-        bibliography: Sequelize.JSONB,
-        public: Sequelize.BOOLEAN,
-        active: Sequelize.BOOLEAN,
-        type:Sequelize.STRING
-    },
-    relations:[]
-};
-  
-  
-const PRIVILEGE = {
-    BLOCK:1,
-    NONE:0,
-    VIEW:2,
-    EDIT:3,
-    MANAGE:5,
-    OWN:7
-}
-  
+
 module.exports.Permission = {
     fields: {
         id : {
@@ -45,7 +17,7 @@ module.exports.Permission = {
         }
     },
     relations: [
-        {
+        /*{
             type: "foreignKey",
             name: "Permissions",
             model: "Project",
@@ -54,9 +26,52 @@ module.exports.Permission = {
             type: "foreignKey",
             name: "Permissions",
             model: "User"
+        }   */
+    ]
+};
+
+module.exports.Project = {
+    fields:{
+        id : {
+            primaryKey      : true,
+            autoIncrement   : true,
+            type            : Sequelize.INTEGER
+        },
+        uuid: Sequelize.UUID,
+        title: Sequelize.STRING,
+        description: Sequelize.STRING,
+        passport: Sequelize.JSONB,
+        bibliography: Sequelize.JSONB,
+        public: Sequelize.BOOLEAN,
+        active: Sequelize.BOOLEAN,
+        type:Sequelize.STRING
+    },
+    relations:[
+        {
+            type: "M2M",
+            name: "Permissions",
+            reverse: "Permissions",
+            model: "User",
+            through:"Permission"
+        },
+        {
+            type:"foreignKey",
+            model:"user"
         }
     ]
 };
+  
+  
+const PRIVILEGE = {
+    BLOCK:1,
+    NONE:0,
+    VIEW:2,
+    EDIT:3,
+    MANAGE:5,
+    OWN:7
+}
+  
+
 /*
 module.exports.Task = {
     fields:{

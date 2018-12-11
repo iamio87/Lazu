@@ -2,7 +2,6 @@ const Route = require("express").Router();
 const fs = require("fs");
 
 Route.get('/:projectID', function(req, res){
-    req.session["user"] = 1;
 //    DB.User.findByPk(req.params['projectID']).then((rez)=>{
 //			console.log(66, rez, Object.keys(rez), rez["dataValues"], rez.save);
 //    });
@@ -12,6 +11,7 @@ Route.get('/:projectID', function(req, res){
 });
 
 Route.get('/', function(req, res){
+//    console.log(this);
     res.send("cleanser");
 });
 
