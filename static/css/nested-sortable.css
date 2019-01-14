@@ -1,0 +1,85 @@
+.placeholder {
+    outline: 1px dashed #4183C4;
+}
+
+.mjs-nestedSortable-error {
+    background: #fbe3e4;
+    border-color: transparent;
+}
+
+ol {
+    margin: 0;
+    padding: 0;
+}
+
+ol.sortable, ol.sortable ol {
+    margin: 0 0 0 25px;
+    padding: 0;
+    list-style-type: none;
+}
+
+.sortable li {
+    margin: 5 0 0 0;
+    padding: 0;
+}
+
+.sortable li div  {
+}
+
+.sortable li.mjs-nestedSortable-branch div {
+}
+
+.sortable li.mjs-nestedSortable-leaf div {
+}
+
+li.mjs-nestedSortable-collapsed.mjs-nestedSortable-hovering div {
+    border-color: #999;
+    background: #fafafa;
+}
+
+.sortable li.mjs-nestedSortable-collapsed > ol {
+    display: none;
+}
+
+.sortable li.mjs-nestedSortable-branch > div > .disclose {
+    display: inline-block;
+    background:none;
+    border:none;
+    padding-top:0.1em;
+}
+
+.sortable li.mjs-nestedSortable-collapsed > div > .disclose > span:before {
+    display:block;
+    width:1em;
+    height:1.2em;
+    background-image: url('/static/image/soft-right-arrow.png');
+    background-repeat:no-repeat;
+    background-size:contain;
+    content: ' ';
+}
+
+.sortable li.mjs-nestedSortable-expanded > div > .disclose > span:before {
+    display:block;
+    width:1em;
+    height:1em;
+    background-image: url('/static/image/soft-down-arrow.png');
+    background-repeat:no-repeat;
+    background-size: contain;
+    content: ' ';
+}
+
+.sortable li.mjs-nestedSortable-leaf > div > .disclose, .outline-element > div > .disclose {
+    display: inline-block;
+    width:1em;
+    height:1em;
+    background:none;
+    border:none;
+    padding-top:0.1em;
+}
+
+.sortable li.mjs-nestedSortable-leaf > div > .content {
+
+}
+
+
+

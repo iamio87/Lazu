@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" demote-non-dropping-particle="sort-only" default-locale="en-US">
+  <info>
+    <title>Lazu Default Style</title>
+    <id>http://www.zotero.online/styles/default</id>
+    <author>
+      <name>Anonymous</name>
+    </author>
+    <category citation-format="author-date"/>
+    <summary>Fallback style for Lazu web app.</summary>
+    <rights license="http://creativecommons.org/licenses/by-sa/3.0/">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights>
+  </info>
+  <macro name="test">
+    <text variable="title"/>
+  </macro>
+  <macro name="at_page">
+	<text value="at_page_macro" />
+  </macro>
+  <bibliography>
+    <layout>
+	  <text macro="test" />
+    </layout>
+  </bibliography>
+  <citation et-al-min="3" et-al-use-first="1">
+    <layout delimiter="; ">
+      <choose>
+        <if position="ibid">
+          <group delimiter=" ">
+            <text value="id." text-case="capitalize-first" font-style="italic"/>
+            <text macro="at_page"/>
+            <!-- period will not show up - this is for find-and-replace later. -->
+          </group>
+        </if>
+        <else-if position="subsequent" type="legal_case" match="any">
+          <!--CSL does not currently support reference to number of repeats, so cannot follow proper Bluebook repeat rule; choice is either short form, or long form.-->
+          <group delimiter=" ">
+            <text macro="at_page"/>
+            <text variable="locator" prefix="at "/>
+          </group>
+        </else-if>
+        <else-if position="subsequent">
+          <group delimiter=" ">
+            <text macro="at_page" suffix=","/>
+            <text value="supra" font-style="italic"/>
+            <text value="note"/>
+            <text variable="first-reference-note-number"/>
+            <text macro="at_page"/>
+          </group>
+        </else-if>
+        <else>
+          <text macro="test"/>
+          <text macro="at_page" prefix=", "/>
+        </else>
+      </choose>
+    </layout>
+  </citation>
+</style>

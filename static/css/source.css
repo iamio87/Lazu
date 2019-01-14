@@ -1,0 +1,196 @@
+table.bib_table {
+    border-collapse:collapse;
+/*    border:3px solid #e7ceeb;*/
+    margin-bottom:20px;
+}
+
+table.bib_table tr {
+    height: 1em;
+}
+table.bib_table th {
+    width:100px;
+}
+table.bib_table td {
+    height:1.4em;
+    border:1px solid #aaaaaa;
+    margin:0px;
+}
+
+div#bibliography {
+    width:100%;
+	padding-left:40px;
+	padding-right:40px;
+}
+
+div#bibliography > div > ul.widget {
+	margin-left:80px;
+}
+
+#bibliographic-render {
+	margin-left:30px;
+	margin-right:30px;
+}
+
+div#bibliography span.subfield_label {
+	width:200px;
+	padding-bottom:5px;
+}
+
+div#bibliography input.entry_field {
+  display: inline;
+  margin: 0;
+  width: 100%;
+  font-family: sans-serif;
+  font-size: 1em;
+/*  appearance: none;*/
+  box-shadow: none;
+  border-radius: none;
+
+/*  padding: 10px;*/
+  border: solid 1px #dcdcdc;
+  transition: box-shadow 0.3s, border 0.3s;
+}
+div#bibliography input.entry_field:focus {
+  outline: none;
+
+  border: solid 1px #707070;
+  box-shadow: 0 0 5px 1px #969696;
+}
+
+/*div#bibliography td.source > td > input.entry_field {
+	display:block;
+	border: transparent 0px white;
+	outline:none;
+	box-shadow:none;
+}
+
+div#bibliography td.source > td:last {
+	background-color:gray;
+	padding:none;
+	margin:none;
+}*/
+/*div#bibliography > div > table {
+    border-collapse:collapse;
+}
+
+div#bibliography > div > table > tbody > tr {
+    width:100%
+}
+
+div#bibliography > div > table > tbody > tr > td.entry_field {
+    min-width:440px;
+    width:auto;
+    border:1px solid #aaaaaa;
+}
+
+div#bibliography > div > table > tbody > tr > td.field_label {
+    width:300px; 
+    border:1px solid #aaaaaa;
+}*/
+
+table#citations {
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+table#citations th.content {
+    width:60%;
+    margin-left:10;
+}
+
+table#citations div {
+    border: 1px solid #aaaaaa;
+    min-height:1.4em;
+
+      white-space: pre-wrap;       /* css-3 */
+      white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+      white-space: -pre-wrap;      /* Opera 4-6 */
+      white-space: -o-pre-wrap;    /* Opera 7 */
+      word-wrap: break-word;       /* Internet Explorer 5.5+ */
+    
+}
+table#citations div:focus {
+    outline: 2px solid #62F0F0;
+
+}
+table#citations th {
+    padding-top:4px;
+    padding-bottom:4px;
+    background-image: -moz-linear-gradient(bottom, #e0dded 10%, #f6f6f6 55%);
+    background-image: linear-gradient(bottom, #ededed 10%, #f6f6f6 55%);
+    background-image: -wekit-linear-gradient(bottom, #ededed 10%, #f6f6f6 55%);
+    background-image: -ms-linear-gradient(bottom, #ededed 10%, #f6f6f6 55%);
+    //background-image: -moz-linear-gradient(bottom, #dcded9 10%, #f6f6f6 55%);
+    margin-bottom:25px;
+    border:1px solid #aaaaaa;
+    border-bottom: 2px solid #aaaaaa;
+}
+
+
+table#citations th.locator {
+    width:8%;
+    max-width:50px;
+}
+table#citations td.locator {
+	text-align:right;
+}
+table#citations td {
+	padding-left:10px;
+	padding-right:10px;
+	line-height:1.2em;
+}
+
+table#citations th.notes {width:20%;}
+table#citations th.issue {width:70px;}
+table#citations div.issue button {display: inline-block; background-color:#eddde2; width:inherit; float:right; margin:0px;}
+
+.source_table_new_row_button {z-index:-30;}
+
+#outline-container.source_context {
+    display:none;
+    background:white;
+    position:absolute;
+    margin-left:20px;
+    top:50px;
+    border-style:dotted;
+    border-width:2px;
+    border-color:#aaaaaa;
+    padding-top:2.5em;
+    padding-bottom:2.5em;
+    padding-right:52px;
+}
+
+#outline-container ol {
+
+}
+
+
+
+/*#outline-container.source_context #close_outline {
+    display:block;
+    width:2em;
+    height:2em;
+    background-image: url('/static/image/exit-black.png');
+    background-repeat:no-repeat;
+    background-size:contain;
+    content: ' ';
+    position:relative;
+    float:right;
+    left:50px;
+    bottom:40px;
+    cursor:pointer;
+}*/
+#outline-container.source_context #close_outline {
+    display:block;
+    width:2em;
+    height:2em;
+    background-image: url('/static/image/exit-black.png');
+    background-repeat:no-repeat;
+    background-size:contain;
+    content: ' ';
+    position:fixed;
+	z-index:12;
+    left:92%;
+	top:60px;
+    cursor:pointer;
+}

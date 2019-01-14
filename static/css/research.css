@@ -1,0 +1,36 @@
+.cited {display:inline-block; background-color:#FF9900;}
+#citation_container {display:inline-block;float:left;width:350px;height:500px;
+    background-color:#e6e6e6;border:2px solid #aaaaaa;
+    border-radius: 4px;
+    margin-left:30px;
+    }
+#topic_container {
+    display:inline-block;width:400px;height:500px;background-color:#e6e6e6;
+    border:2px solid #aaaaaa;
+    border-radius: 4px;
+    margin-left:50px;
+}
+#tabs div {overflow-y: scroll; max-height:370px;
+
+      white-space: pre-wrap;       /* css-3 */
+      white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+      white-space: -pre-wrap;      /* Opera 4-6 */
+      white-space: -o-pre-wrap;    /* Opera 7 */
+      word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+#element_title {
+    font-style: italic;margin-left:20px;
+}
+#side-menu .citation {
+    margin:3px;border:1px solid black;
+      white-space: pre-wrap;       /* css-3 */
+      white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+      white-space: -pre-wrap;      /* Opera 4-6 */
+      white-space: -o-pre-wrap;    /* Opera 7 */
+      word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+#description {
+    background-color:white;
+}
+

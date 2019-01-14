@@ -1,0 +1,58 @@
+<interface>
+	<tree>
+		<branch text="Judicial" value="court-decision">
+			<leaf text="Court Decision" value="court-decision" csltype="legal_case" />
+			<leaf text="Court Rule" value="court-rule" csltype="legal_case" />
+			<leaf text="Court Filing" value="court-filing" csltype="legal_case" />
+		</branch>
+		<branch text="Executive" value="regulation">
+			<leaf text="Regulation" value="regulation" csltype="legislation" />
+			<leaf text="Agency Adjudication" value="agency-case-decision" csltype="legal_case" />
+			<leaf text="Agency Arbitration" value="agency-arbitration-decision" csltype="Agency Arbitration" csltype="legal_case" />
+			<leaf text="Advisory Opinion" value="advisory-opinion" csltype="bill" />
+			<leaf text="Patent" value="patent" csltype="patent" />
+			<leaf text="Agency Filing" value="government-filing" csltype="bill" />
+			<leaf text="Executive Order" value="executive-order" csltype="legislation" />
+		</branch>
+		<branch text="Legislative" value="legal-code">
+			<leaf text="Legal Code" value="legal-code" csltype="legislation" />
+			<leaf text="Session Law" value="session-law" csltype="legislation" />
+			<leaf text="Constitution" value="constitution" csltype="legislation" />
+			<leaf text="Bill" value="bill" csltype="bill" />
+			<leaf text="Resolution" value="resolution" csltype="legislation" />
+			<leaf text="Report" value="legislative-report" csltype="report" />
+			<leaf text="Committee Print" value="committee-print" csltype="report" />
+			<leaf text="Hearing" value="hearing" csltype="report" />
+			<leaf text="Debate" value="debate" csltype="report" />
+		</branch>
+		<leaf text="Treaty" value="treaty" csltype="treaty" />
+		<branch text="Periodical" value="article-journal" />
+			<leaf text="Journal Article" value="article-journal" csltype="article-journal" />
+			<leaf text="Magazine Article" value="article-magazine" csltype="article-magazine" />
+			<leaf text="News Article" value="article-news" csltype="article-news" />
+		</branch>
+		<leaf text="Non-Periodical" value="book" csltype="book" />
+		<branch text="Unpublished" value="manuscript" >
+			<leaf text="Manuscript" value="manuscript" csltype="manuscript" />
+			<leaf text="Dissertation/Thesis" value="thesis" csltype="thesis" />
+			<leaf text="Interview" value="interview" csltype="interview" />
+			<leaf text="Speech/Address" value="speech" csltype="speech" />
+			<leaf text="Working Paper" value="working-paper" csltype="manuscript" />
+		</branch>
+		<branch text="Correspondence" value="letter">
+			<leaf text="Letter" value="letter" csltype="personal_communication" />
+			<leaf text="e-mail" value="email" csltype="personal_communication" />
+			<leaf text="Forum Post" value="post" csltype="post" />
+		</branch>
+		<leaf text="Internet" value="webpage" csltype="webpage" />
+		<branch text="Media" value="Broadcast">
+			<leaf text="Audio" value="audio" csltype="song" />
+			<leaf text="Film" value="film" csltype="motion_picture" />
+			<leaf text="Broadcast" value="broadcast" csltype="broadcast" />
+		</branch>
+	</tree>
+	<fields>
+		
+	</fields>
+
+</interface>

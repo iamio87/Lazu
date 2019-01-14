@@ -1,0 +1,51 @@
+citation_pane {
+    position:absolute;
+    background-color: white;
+    padding:15px;
+    border-radius: 15px;
+    border-left: 1px solid #aaaaaa;
+    border-bottom: 1px solid #aaaaaa;
+    border-right: 1px solid #aaaaaa;
+}
+
+citation_pane ul {
+    list-style: none;
+    margin-left:0px;
+    padding-left: 0px;
+}
+
+citation_pane > div > span {
+	display:inline-block;
+	margin-left:10px;
+	margin-right:10px;
+	min-width:40px;
+	height:1em;
+	background-color:#aaccff;
+}
+
+ref {
+    background-color:#aaccff;
+    padding-left:6px;
+    padding-right:6px;
+    border-radius:2px;
+}
+ref > ref-id {
+
+}
+ref > ref-id:after {
+	content:"*";
+}
+ref > prefix {
+/*	display:none;*/
+}
+ref > prefix:after {
+	content:" ";
+
+}
+ref > suffix {
+/*	display:none;*/
+}
+ref > suffix:before {
+	content:" ";
+}
+

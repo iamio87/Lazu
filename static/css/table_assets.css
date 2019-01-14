@@ -1,0 +1,9 @@
+table tr th {
+    border-bottom:1px solid #aaaaaa;
+}
+table a {
+    text-decoration:none;
+}
+table tr td {
+    padding:8px;
+}

@@ -1,0 +1,1024 @@
+/* This next command causes lists to be displayed in the content-editable div.description, so that users can create html lists. */
+
+
+ol[level0] ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+
+/* Level 0 */
+ol[level0]{
+    counter-reset:item; /*list-style-type:none; list-style-position:inside;*/
+}
+
+ol[level0] li:before {
+    counter-increment:item;
+    padding-right:1em
+}
+
+ol[level0 = "1."] > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level0 = "a."] > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level0="A."] > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level0="I."] > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level0="i."] > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level0="greek."] > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level0="(1)"] > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level0="(a)"] > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level0="(A)"] > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level0="(I)"] > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level0="(i)"] > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level0="(greek)"] > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+
+/* level 1 */
+ol[level0] ol {
+    counter-reset:item;
+}
+
+ol[level1 = "1."] ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level1 = "a."] ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level1="A."] ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level1="I."] ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level1="i."] ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level1="greek."] ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level1="(1)"] ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level1="(a)"] ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level1="(A)"] ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level1="(I)"] ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level1="(i)"] ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level1="(greek)"] ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+
+/* level 2 */
+
+ol[level2 = "1."] ol ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level2 = "a."] ol ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level2="A."] ol ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level2="I."] ol ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level2="i."] ol ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level2="greek."] ol ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level2="(1)"] ol ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level2="(a)"] ol ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level2="(A)"] ol ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level2="(I)"] ol ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level2="(i)"] ol ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level2="(greek)"] ol ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+/* level 3 */
+
+ol[level3 = "1."] ol ol ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level3 = "a."] ol ol ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level3="A."] ol ol ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level3="I."] ol ol ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level3="i."] ol ol ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level3="greek."] ol ol ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level3="(1)"] ol ol ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level3="(a)"] ol ol ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level3="(A)"] ol ol ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level3="(I)"] ol ol ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level3="(i)"] ol ol ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level3="(greek)"] ol ol ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+/* level 4 */
+
+ol[level4 = "1."] ol ol ol ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level4 = "a."] ol ol ol ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level4="A."] ol ol ol ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level4="I."] ol ol ol ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level4="i."] ol ol ol ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level4="greek."] ol ol ol ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level4="(1)"] ol ol ol ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level4="(a)"] ol ol ol ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level4="(A)"] ol ol ol ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level4="(I)"] ol ol ol ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level4="(i)"] ol ol ol ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level4="(greek)"] ol ol ol ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+/* level 5 */
+
+ol[level5 = "1."] ol ol ol ol ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level5 = "a."] ol ol ol ol ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level5="A."] ol ol ol ol ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level5="I."] ol ol ol ol ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level5="i."] ol ol ol ol ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level5="greek."] ol ol ol ol ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level5="(1)"] ol ol ol ol ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level5="(a)"] ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level5="(A)"] ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level5="(I)"] ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level5="(i)"] ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level5="(greek)"] ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+/* level 6 */
+
+ol[level6 = "1."] ol ol ol ol ol ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level6 = "a."] ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level6="A."] ol ol ol ol ol ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level6="I."] ol ol ol ol ol ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level6="i."] ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level6="greek."] ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level6="(1)"] ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level6="(a)"] ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level6="(A)"] ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level6="(I)"] ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level6="(i)"] ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level6="(greek)"] ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+/* level 7 */
+
+ol[level7 = "1."] ol ol ol ol ol ol ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level7 = "a."] ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level7="A."] ol ol ol ol ol ol ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level7="I."] ol ol ol ol ol ol ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level7="i."] ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level7="greek."] ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level7="(1)"] ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level7="(a)"] ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level7="(A)"] ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level7="(I)"] ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level7="(i)"] ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level7="(greek)"] ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+/* level 8 */
+
+ol[level8 = "1."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level8 = "a."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level8="A."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level8="I."] ol ol ol ol ol ol ol ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level8="i."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level8="greek."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level8="(1)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level8="(a)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level8="(A)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level8="(I)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level8="(i)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level8="(greek)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+
+/* level 9 */
+
+ol[level9 = "1."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level9 = "a."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level9="A."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level9="I."] ol ol ol ol ol ol ol ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level9="i."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level9="greek."] ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level9="(1)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level9="(a)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level9="(A)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level9="(I)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level9="(i)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level9="(greek)"] ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+/* level 10 */
+
+ol[level10 = "1."] ol ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, decimal) ".";
+}
+
+ol[level10 = "a."] ol ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-alpha) ".";
+}
+
+ol[level10="A."] ol ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, upper-alpha) ".";
+}
+
+ol[level10="I."] ol ol ol ol ol ol ol ol ol > li:before{
+    content: counter(item, upper-roman) ".";
+}
+
+ol[level10="i."] ol ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-roman) ".";
+}
+
+ol[level10="greek."] ol ol ol ol ol ol ol ol ol > li:before {
+    content: counter(item, lower-greek) ".";
+}
+
+ol[level10="(1)"] ol ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, decimal) ")";
+}
+
+ol[level10="(a)"] ol ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-alpha) ")";
+}
+
+ol[level10="(A)"] ol ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-alpha) ")";
+}
+
+ol[level10="(I)"] ol ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, upper-roman) ")";
+}
+
+ol[level10="(i)"] ol ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-roman) ")";
+}
+
+ol[level10="(greek)"] ol ol ol ol ol ol ol ol ol > li:before {
+    content: "(" counter(item, lower-greek) ")";
+}
+
+
+/*///////// SPECIAL RULES FOR CSS COUNTER-RESET STYLES /////////////*/
+/*///// decimal-parentheses //////*/
+
+ol[level0="decimal-parentheses"] {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+ol[level0="decimal-parentheses"] > li:before {
+    counter-increment:item;
+    content:"(" counter(item, decimal) ")";
+    padding-right:1em
+}
+/*div.content div.description ol.decimal-parentheses ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.decimal-parentheses ol > li:before {
+    counter-increment:subitem;
+    content:"(" counter(subitem, decimal) ")"; padding-right:1em;
+}*/
+
+
+/*///// lower-alpha-parentheses //////*/
+div.content div.description ol.lower-alpha-parentheses {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-alpha-parentheses > li:before {
+    counter-increment:item; content:"(" counter(item, lower-alpha) ")"; padding-right:1em;
+}
+/*div.content div.description ol.lower-alpha-parentheses ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.lower-alpha-parentheses ol > li:before {
+    counter-increment:subitem;
+    content:"(" counter(subitem, lower-alpha) ")"; padding-right:1em;
+}*/
+
+
+/*///// upper-alpha-parentheses //////*/
+div.content div.description ol.upper-alpha-parentheses {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.upper-alpha-parentheses > li:before {
+    counter-increment:item; content:"(" counter(item, upper-alpha) ")"; padding-right:1em;
+}
+div.content div.description ol.upper-alpha-parentheses ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.upper-alpha-parentheses ol > li:before {
+    counter-increment:subitem; content:"(" counter(subitem, upper-alpha) ")"; padding-right:1em;
+}
+
+
+/*///// lower-roman-parentheses //////*/
+div.content div.description ol.lower-roman-parentheses {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-roman-parentheses > li:before {
+    counter-increment:item;
+    content:"(" counter(item, lower-roman) ")" !important;
+    padding-right:1em;
+}
+div.content div.description ol.lower-roman-parentheses ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.lower-roman-parentheses ol > li:before {
+    counter-increment:subitem;
+    content:"(" counter(subitem, lower-roman) ")"; padding-right:1em;
+}
+
+
+/*///// upper-roman-parentheses //////*/
+div.content div.description ol.upper-roman-parentheses {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.upper-roman-parentheses > li:before {
+    counter-increment:item;
+    content:"(" counter(item, upper-roman) ")" !important;
+    padding-right:1em;
+}
+div.content div.description ol.upper-roman-parentheses ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.upper-roman-parentheses ol > li:before {
+    counter-increment:subitem;
+    content: "(" counter(subitem, upper-roman) ")";
+	padding-right:1em;
+}
+
+/*///// lower-greek-parentheses //////*/
+div.content div.description ol.lower-greek-parentheses {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-greek-parentheses > li:before {
+    counter-increment:item;
+    content: counter(item, lower-greek) ")";
+    padding-right:1em;
+}
+div.content div.description ol.lower-greek-parentheses ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.lower-greek-parentheses ol > li:before {
+    counter-increment:subitem;
+    content: counter(subitem, lower-greek) ")"; padding-right:1em;
+}
+
+
+/*///// decimal-parenthesis //////*/
+div.content div.description ol.decimal-parenthesis {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.decimal-parenthesis > li:before {
+    counter-increment:item;
+    content: counter(item, decimal) ")";
+    padding-right:1em;
+}
+div.content div.description ol.decimal-parenthesis ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.decimal-parenthesis ol > li:before {
+    counter-increment:subitem;
+    content: counter(subitem, decimal) ")"; padding-right:1em;
+}
+
+
+/*///// lower-alpha-parenthesis //////*/
+div.content div.description ol.lower-alpha-parenthesis {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-alpha-parenthesis > li:before {
+    counter-increment:item;
+    content: counter(item, lower-alpha) ")";
+    padding-right:1em;
+}
+div.content div.description ol.lower-alpha-parenthesis ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.lower-alpha-parenthesis ol > li:before {
+    counter-increment:subitem;
+    content: counter(subitem, lower-alpha) ")"; padding-right:1em
+}
+
+
+/*///// upper-alpha-parenthesis //////*/
+div.content div.description ol.upper-alpha-parenthesis {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.upper-alpha-parenthesis > li:before {
+    counter-increment:item;
+    content: counter(item, upper-alpha) ")";
+    padding-right:1em;
+}
+div.content div.description ol.upper-alpha-parenthesis ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.upper-alpha-parenthesis ol > li:before {
+    counter-increment:subitem;
+    content: counter(subitem, upper-alpha) ")"; padding-right:1em;
+}
+
+
+/*///// lower-roman-parenthesis //////*/
+div.content div.description ol.lower-roman-parenthesis {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-roman-parenthesis > li:before {
+    counter-increment:item;
+    content: counter(item, lower-roman) ")";
+    padding-right:1em;
+}
+div.content div.description ol.lower-roman-parenthesis ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.lower-roman-parenthesis ol > li:before {
+    counter-increment:subitem;
+    content: counter(subitem, lower-roman) ")"; padding-right:1em
+}
+
+
+/*///// upper-roman-parenthesis //////*/
+div.content div.description ol.upper-roman-parenthesis {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.upper-roman-parenthesis > li:before {
+    counter-increment:item;
+    content: counter(item, upper-roman) ")";
+    padding-right:1em
+}
+div.content div.description ol.upper-roman-parenthesis ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.upper-roman-parenthesis ol > li:before {
+    counter-increment:subitem;
+    content: counter(subitem, upper-roman) ")"; 
+	padding-right:1em;
+}
+
+/*///// lower-greek-parenthesis //////*/
+div.content div.description ol.lower-greek-parenthesis {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-greek-parenthesis > li:before {
+    counter-increment:item;
+    content: counter(item, lower-greek) ")";
+    padding-right:1em
+}
+div.content div.description ol.lower-greek-parenthesis ol {
+    counter-reset:subitem; list-style-type:none;
+}
+div.content div.description ol.lower-greek-parenthesis ol > li:before {
+    counter-increment:subitem;
+    content: counter(subitem, lower-greek) ")"; padding-right:1em
+}
+
+
+
+/*///// decimal-nested //////*/
+div.content div.description ol.decimal-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.decimal-nested > li:before {
+    counter-increment:item;
+    content: counters(item, ".") ;
+    padding-right:1em
+}
+div.content div.description ol.decimal-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.decimal-nested ol > li:before {
+    counter-increment:item;
+    content: counters(item, ".") ;
+	padding-right:1em
+}
+
+
+
+/*///// lower-alpha-nested //////*/
+div.content div.description ol.lower-alpha-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-alpha-nested > li:before {
+    counter-increment:item;
+    content: counters(item, ".", lower-alpha) ;
+    padding-right:1em
+}
+div.content div.description ol.lower-alpha-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.lower-alpha-nested ol > li:before {
+    counter-increment:item;
+    content: counters(item, ".", lower-alpha) ;
+	padding-right:1em
+}
+
+
+
+/*///// upper-alpha-nested //////*/
+div.content div.description ol.upper-alpha-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.upper-alpha-nested > li:before {
+    counter-increment:item;
+    content:counters(item, ".", upper-alpha);
+    padding-right:1em
+}
+div.content div.description ol.upper-alpha-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.upper-alpha-nested ol > li:before {
+    counter-increment:item;
+    content:counters(item, ".", upper-alpha);
+	padding-right:1em
+}
+
+
+/*///// lower-roman-nested //////*/
+div.content div.description ol.lower-roman-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-roman-nested > li:before {
+    counter-increment:item;
+    content: counters(item, ".", lower-roman);
+    padding-right:1em
+}
+div.content div.description ol.lower-roman-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.lower-roman-nested ol > li:before {
+    counter-increment:item;
+    content: counters(item, ".", lower-roman);
+	padding-right:1em
+}
+
+
+
+/*///// upper-roman-nested //////*/
+div.content div.description ol.upper-roman-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.upper-roman-nested > li:before {
+    counter-increment:item;
+    content: counters(item, ".", upper-roman);
+    padding-right:1em
+}
+div.content div.description ol.upper-roman-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.upper-roman-nested ol > li:before {
+    counter-increment:item;
+    content:counters(item, ".", upper-roman) ;
+	padding-right:1em
+}
+
+
+/*///// lower-greek-nested //////*/
+div.content div.description ol.lower-greek-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-greek-nested > li:before {
+    counter-increment:item;
+    content:counters(item, ".", lower-greek);
+    padding-right:1em
+}
+div.content div.description ol.lower-greek-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.lower-greek-nested ol > li:before {
+    counter-increment:item;
+    content: counters(item, ".", lower-greek);
+	padding-right:1em
+}
+
+
+/*///// decimal-parentheses-nested //////*/
+div.content div.description ol.decimal-parentheses-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.decimal-parentheses-nested > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", decimal) ")";
+    padding-right:1em
+}
+div.content div.description ol.decimal-parentheses-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.decimal-parentheses-nested ol > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", decimal) ")";
+	padding-right:1em
+}
+
+
+/*///// lower-alpha-parentheses-nested //////*/
+div.content div.description ol.lower-alpha-parentheses-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-alpha-parentheses-nested > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", lower-alpha) ")";
+    padding-right:1em
+}
+div.content div.description ol.lower-alpha-parentheses-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.lower-alpha-parentheses-nested ol > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", lower-alpha) ")";
+	padding-right:1em
+}
+
+
+/*///// upper-alpha-parentheses-nested //////*/
+div.content div.description ol.upper-alpha-parentheses-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.upper-alpha-parentheses-nested > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", upper-alpha) ")";
+    padding-right:1em
+}
+div.content div.description ol.upper-alpha-parentheses-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.upper-alpha-parentheses-nested ol > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", upper-alpha) ")";
+	padding-right:1em
+}
+
+
+/*///// lower-roman-parentheses-nested //////*/
+div.content div.description ol.lower-roman-parentheses-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-roman-parentheses-nested > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", lower-roman) ")";
+    padding-right:1em
+}
+div.content div.description ol.lower-roman-parentheses-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.lower-roman-parentheses-nested ol > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", lower-roman) ")";
+	padding-right:1em
+}
+
+
+/*///// upper-roman-parentheses-nested //////*/
+div.content div.description ol.upper-roman-parentheses-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.upper-roman-parentheses-nested > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", upper-roman) ")";
+    padding-right:1em
+}
+div.content div.description ol.upper-roman-parentheses-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.upper-roman-parentheses-nested ol > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", upper-roman) ")";
+	padding-right:1em
+}
+
+
+/*///// lower-greek-parentheses-nested //////*/
+div.content div.description ol.lower-greek-parentheses-nested {
+    counter-reset:item; list-style-type:none; list-style-position:inside;
+}
+div.content div.description ol.lower-greek-parentheses-nested > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", lower-greek) ")";
+    padding-right:1em
+}
+div.content div.description ol.lower-greek-parentheses-nested ol {
+    counter-reset:item; list-style-type:none;
+}
+div.content div.description ol.lower-greek-parentheses-nested ol > li:before {
+    counter-increment:item;
+    content:"(" counters(item, ")(", lower-greek) ")";
+	padding-right:1em
+}
+
+
+/*
+div.content div.description div{
+    border: 0px solid transparent;
+    border: none;
+    background:none;
+}*/

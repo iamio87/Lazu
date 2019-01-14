@@ -1,0 +1,122 @@
+section#outline-container input {
+    vertical-align: text-bottom;
+	position:absolute;
+	float:right;
+	right:50px;
+    }
+
+.notice {
+    color: #c33;
+    }
+
+.heading_option_button {list-style:none; display:block;float:right;}
+.heading_option_button span {float:right;height:1em;}
+.heading_option_list {list-style:none; position:relative; top:1.3em;background-color:white;z-index:2;}
+.outline-head .heading_option_list {display:none;}
+.outline-element-options {display:inline-block;float:right; padding-left:2px; position:relative;bottom:3px;margin-right:3px;max-height:1em;}
+.outline-element-options li {padding-left:2px;}
+.outline-element-options li ul {padding-left:2px;}
+.outline-element-options li ul li {padding-left:2px;}
+
+.outline-head div ul.outline-element-options {
+display:inline-block; float:right; position:relative; background: none; bottom:1.6em;height:.4em;
+}
+
+.outline-head, .outline-element{
+    font-family: arial;
+}
+
+.outline-head div, .outline-element div {
+    display:inline-block;
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    background: linear-gradient(to bottom, #ffffff 0%, #f6f6f6 47%, #ededed 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);
+    border-color: #d4d4d4 #d4d4d4 #bcbcbc;
+    border-image: none;
+    border-style: solid;
+    border-width: 1px;
+    cursor: move;
+    margin: 0;
+}
+
+.outline-head div {
+    width:100%;
+}
+.outline-head div div.outline_title {
+//    width:100%;
+width:auto;
+display:block;
+    margin-right:35px;
+    margin-left:20px;
+}
+
+.outline-element div div.heading {
+    margin-top:0px;
+    cursor:text;
+    display:inline-block;
+    min-height: 17px;
+    margin-left:5px;
+    outline:0px solid transparent;
+    cursor:text;
+	outline:0px solid transparent;
+}
+.outline-element div div.heading:focus {
+
+}
+
+/*.outline-element div div div {
+
+}*/
+
+/*li.outline-element > input.ignore-this {display:none;}*/
+
+#outline-container li.outline-element > input.citation-outline-relationship {
+	display:none;
+}
+
+#outline-container.source_context li.outline-element > input.citation-outline-relationship {
+	display:inline-block;
+}
+
+.outline-element div div.substance {
+	display:none;
+	margin:20px;
+	border:none;
+}
+
+.outline-element div div.substance div.content {
+	background:none;
+	outline:0px solid transparent;
+	min-height:1em; display:inline-block;
+	color:black; cursor:text;
+	width:100%;
+
+
+      white-space: pre-wrap;       /* css-3 */
+      white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+      white-space: -pre-wrap;      /* Opera 4-6 */
+      white-space: -o-pre-wrap;    /* Opera 7 */
+      word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+.outline-element div div.substance div.content *:first-child {
+	margin-top:0px;
+/*	padding-top:0px;*/
+}
+
+
+/*.outline-element div div.substance div.citations_list {
+    float:left;
+    border: 1px solid black; 
+    width:200px; 
+    min-height:1em; 
+    display:inline-block;
+}
+
+
+.outline-element div div.substance.citation_pane div.content {
+    min-height:200px;
+    float:left;
+}*/

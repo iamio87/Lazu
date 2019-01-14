@@ -1,0 +1,464 @@
+<meta charset="UTF-8">
+<!DOCTYPE html>
+<html>
+<head>
+<base href="file:///srv/www/lazu/static/tests/" target="_blank">
+<title>shadow.html</title>
+<style>
+
+.editor {
+	min-height:40px;
+	width:400px;
+	min-width:400px;
+	white-space: pre-wrap;       /* css-3 */
+	display:inline-block;
+	border: 1px solid gray;
+	vertical-align:top;
+}
+
+.editor td {
+	padding:1em;
+	border: 1px solid black;
+}
+
+div.container {
+	border-top:1px solid black;
+	margin-top:20px;
+	padding-top:10px;
+	padding-bottom:20px;
+	display:block;
+}
+
+table {
+	table-layout: fixed;
+}
+</style>
+<script type="text/javascript" src="file:///srv/www/lazu/static/shadow.js" ></script>
+<script type="text/javascript" src="file:///srv/www/lazu/static/shadow-toolbar.js" ></script>
+<script type="text/javascript">
+	function check_equality (A, B){ //// http://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
+		var a = typeof(A); var b = typeof(B)
+		if (a != b){
+			if ( (a || false) == (b || false) ){return true;} ////functional equality ---> TODO: do I 
+			return false
+		} //// different types cannot be equal
+		
+		if (Array.isArray(A) && Array.isArray(B)){
+			for (var i = 0, l = A.length; i < l; i++) { 
+				if (!check_equality(A[i], B[i])){
+					return false;
+				}
+			}
+		} else if (a=="object") {
+			var _a = Object.keys(A).sort(); var _b = Object.keys(B).sort(); /// get sorted keys
+			if (_a.length != _b.length){ //// must have same number of keys
+				return false
+			}
+			for (var i = 0, l = _a.length; i < l; i++) { //// must have same key:value pairs
+				if (!check_equality(A[_a[i]], B[_b[i]])){
+					return false;
+				}
+			}
+		} else if ((a == "string") || (a=="number")){
+			if (A != B){
+				return false;
+			}
+		} else if (a == "undefined"){
+			return true;
+		} else if (a =="boolean"){
+			return (A===B);
+		}
+		return true;
+	}
+</script>
+<script>
+var Test = (function(){
+    function fuzz(){
+        return Math.floor(Math.random() * 300);
+    }
+
+    function click (DOM, ATTR){
+        var e = new MouseEvent("click",{view:window, bubbles:true, cancelable:true});
+        e.target = DOM;
+        e.originalTarget = DOM;
+        e.explicitOriginalTarget = DOM;
+        e.altKey= ATTR.altKey || false;
+        e.ctrlKey= ATTR.ctrlKey || false;
+        e.shiftKey= ATTR.shiftKey || false;
+        e.metaKey= ATTR.metaKey || false;
+        return DOM.dispatchEvent(e);
+    };
+
+    var clickPromise = function (DOM) {
+        return new Promise(
+            function (resolve, reject) {
+                click(DOM, {});
+                setTimeout(function(){
+                    resolve(DOM);
+                }, fuzz());
+            }
+        );
+    };
+
+    function keydown (DOM, KEY, ATTR){
+        var e = new Event("keydown", {view:window,bubbles:true,cancelable:false});
+        e.key=KEY;    // just enter the char you want to send
+        if (e.key.length == 1){
+            e.charCode=e.key.charCodeAt(0);
+            e.which=e.charCode;
+            e.keyCode = 0;
+        } else {
+            e.charCode = 0;
+            e.which = 0;
+            e.keyCode = ATTR.keyCode || 0;
+        }
+        e.target = DOM;
+        e.originalTarget = DOM;
+        e.explicitOriginalTarget = DOM;
+        e.altKey= ATTR.altKey || false;
+        e.ctrlKey= ATTR.ctrlKey || false;
+        e.shiftKey= ATTR.shiftKey || false;
+        e.metaKey= ATTR.metaKey || false;
+        return DOM.dispatchEvent(e);
+    };
+
+    function keypress (DOM, KEY, ATTR){
+        var e = new Event("keypress", {view:window,bubbles:true,cancelable:true});
+        e.key=KEY;    // just enter the char you want to send
+        if (e.key.length == 1){
+            e.charCode=e.key.charCodeAt(0);
+            e.which=e.charCode;
+            e.keyCode = 0;
+        } else {
+            e.charCode = 0;
+            e.which = 0;
+            e.keyCode = ATTR.keyCode || 0;
+        }
+        e.target = DOM;
+        e.originalTarget = DOM;
+        e.explicitOriginalTarget = DOM;
+        e.altKey= ATTR.altKey || false;
+        e.ctrlKey= ATTR.ctrlKey || false;
+        e.shiftKey= ATTR.shiftKey || false;
+        e.metaKey= ATTR.metaKey || false;
+        return DOM.dispatchEvent(e);
+    }
+
+    var keydownPromise = function (DOM, KEY, ATTR) {
+        return new Promise (
+            function (resolve, reject) {
+                keydown(DOM, KEY, ATTR);
+                setTimeout(function(){
+                    resolve(DOM);
+                }, fuzz());
+            }
+        )
+    }
+    var keypressPromise = function (DOM, KEY, ATTR) {
+        return new Promise (
+            function (resolve, reject) {
+                keypress(DOM, KEY, ATTR);
+                setTimeout(function(){
+                    resolve(DOM);
+                }, fuzz());
+            }
+        )
+    }
+
+    function test (name, func){
+        var _test = new Promise(
+            function (resolve, reject) {
+                func();
+                resolve();
+            }
+        );
+        _test.then(function(){
+            console.log("Completed test: "+name);
+        })
+    }
+
+    var Assert = (function(){
+        function equal(A, B, explanation){
+            if (A!==B){
+                console.log("Fail: "+explanation)
+            }
+        }
+        return {equal:equal};
+	})();
+	
+	return {Assert:Assert, test:test, keypressPromise:keypressPromise, keydownPromise:keydownPromise, clickPromise:clickPromise}
+})();
+</script>
+</head>
+<body>
+
+<div class="container">
+<div id="editorButtons"></div>
+<div id="editor" class="editor" contenteditable="true"></div>
+
+<div id="validate-editor" class="editor" contenteditable="true"></div>
+
+<div class="editor" id="comparison"></div>
+</div>
+
+<!--- test editors --->
+<div class="container">
+<!--<div class="editor"><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol><li>Diez<ol><li>Once</li></ol></li><li>Doce<ol><li>Trece</li></ol></li></ol></li><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text </i><i></i><i> is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+
+<div class="editor"><ol><li>Ocho</li><li>Nueve<ol indent="1"><li>Diez<ol indent="2"><li>Once</li></ol></li><li>Doce<ol indent="2"><li>Trece</li></ol></li></ol></li><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol indent="1"><li>Tres<ol indent="2"><li>Quatro</li></ol></li><li>Cinco<ol indent="2"><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><ul><li>hi</li><li>Hello World!</li></ul><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text </i><i></i><i> is</i></p><p><i> italic text</i><u>This is underline text</u></p><p>First item</p><p>Second item</p></div>
+</div>-->
+<div class="editor" id="deltas0"></div>
+<div class="editor" id="deltas1"><p>hi</p><p>Hello World!</p><p><b>This is bold text</b><i>This is italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol></div>
+<div class="editor" id="deltas2"><ul><li>hi</li><li>Hello World!</li></ul><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol></div>
+<div class="editor" id="deltas3"><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><ul><li>hi</li><li>Hello World!</li></ul><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol></div>
+<div class="editor" id="deltas4"><ol><li>Ocho</li><li>Nueve<ol><li>Diez<ol><li>Once</li></ol></li><li>Doce<ol><li>Trece</li></ol></li></ol></li><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><ul><li>hi</li><li>Hello World!</li></ul><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol></div>
+<div class="editor" id="deltas5"><ol><li>Ocho</li><li>Nueve<ol><li>Diez<ol><li>Once</li></ol></li><li>Doce<ol><li>Trece</li></ol></li></ol></li><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><ul><li>hi</li><li>Hello World!</li></ul><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table></div>
+<div class="editor" id="deltas6"><ol><li>Ocho</li><li>Nueve<ol><li>Diez<ol><li>Once</li></ol></li><li>Doce<ol><li>Trece</li></ol></li></ol></li><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><p>hi</p><ul><li>Hello World!</li></ul><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table></div>
+<div class="editor" id="deltas7"><ol><li>Ocho</li><li>Nueve<ol><li>Diez<ol><li>Once</li></ol></li><li>Doce<ol><li>Trece</li></ol></li></ol></li><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table></div>
+<div class="editor" id="deltas8"><ol><ol><li>Diez<ol><li>Once</li></ol></li><li>Doce<ol><li>Trece</li></ol></li></ol><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table></div>
+<div class="editor" id="deltas9"><ol><ol><li>Diez<ol><li>Once</li></ol></li><li>Doce<ol><li>Trece</li></ol></li></ol><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas10"><ol><ol><ol><ol><li>First</li></ol></ol><li>Diez<ol><li>Once</li></ol></li><li>Doce<ol><li>Trece</li></ol></li></ol><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas11"><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol><li>Diez<ol><li>Once</li></ol></li><li>Doce<ol><li>Trece</li></ol></li></ol></li><li>Quatorce</li><li>Quince</li><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas12"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas13"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li><li>Some paragraph text.</li><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas14"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li></ol><p>Some paragraph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas15"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li></ol><p>Some paragraph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr><tr><td>Cell 5</td><td>Cell 6</td></tr><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas16"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li></ol><p>Some paragraph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas17"><p><img src="shadow.png"><img src="shadow.png">Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li>Cinco<ol><li>Seis</li></ol></li></ol></li></ol><p>Some paragraph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas18"><p><img src="shadow.png">Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas19"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td></tr><tr><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas20"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><ol><li>Tres</li><li>Quatro</li></ol><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas21"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><li>Tres<ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas22"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno</li><li>Dos<ol><ol><ol><ol><li>Tres</li></ol></ol><li>Quatro</li></ol><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas23"><p>Bother</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno<ol><li>Dos<ol><ol><ol><li>Tres</li></ol></ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas24"><p>Ber</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Doce</li></ol></ol><p>Trece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno<ol><li>Dos<ol><ol><ol><li>Tres</li></ol></ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic text</i><u>This is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas25"><p>Ber</p><ol><li>Bother<ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Do<b>ce</b></li></ol></ol><p><b>Tr</b>ece</p><p>Quatorce</p><p>Quince</p><ol><li>Uno<ol><li>Dos<ol><ol><ol><li>Tres</li></ol></ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic te</i><b><i>xt</i></b><b><u>Th</u></b><u>is is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas26"><p>Ber</p><ol><li>Bother</li><li><br /><ol><ol><ol><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Do<b>ce</b></li></ol></ol><p><b>Tr</b>ece</p><p>Quatorce</p><p><br /></p><p>Quince</p><ol><li>Uno<ol><li>Dos<ol><ol><ol><li>Tres</li></ol></ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic te</i><b><i>xt</i></b><b><u>Th</u></b><u>is is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td><br/></td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas27"><p>Ber</p><ol><li>Bother</li><li><br></li><li><br><ol><ol><ol><li><br></li><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Do<b>ce</b></li></ol></ol><p><b>Tr</b>ece</p><p>Quatorce</p><p><br></p><p><br></p><p><br></p><p>Quince</p><ol><li>Uno<ol><li>Dos<ol><ol><ol><li>Tres</li></ol></ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic te</i><b><i>xt</i></b><b><u>Th</u></b><u>is is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td><br></td><td><br></td><td><br></td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas28"><p>Ber</p><ol><li>Bother</li><li><br></li><li>List Item content<ol><ol><ol><li><br></li><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Do<b>ce</b></li></ol></ol><p><b>Tr</b>ece</p><p>Quatorce</p><p><br></p><p>Paragraph of text</p><p><br></p><p>Quince</p><ol><li>Uno<ol><li>Dos<ol><ol><ol><li>Tres</li></ol></ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic te</i><b><i>xt</i></b><b><u>Th</u></b><u>is is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td><br></td><td>Table cell content</td><td><br></td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+<div class="editor" id="deltas29"><p>Ber</p><ol><li><br></li><li><br></li><li>List Item content<ol><ol><ol><li><br></li><li>First</li></ol></ol></ol></li></ol><p>Diez</p><ol><ol><ol><li>Once</li></ol><li>Do<b>ce</b></li></ol></ol><p><b>Tr</b>ece</p><p>Quatorce</p><p><br></p><p>Paragraph of text</p><p><br></p><p>Quince</p><ol><li>Uno<ol><li>Dos<ol><ol><ol><li>Tres</li></ol></ol><li>Quatro</li></ol></li><li><u>Cinco</u><u><img src="shadow.png" width="30px"></u><u> o'clock</u><ol><li>Seis</li></ol></li></ol></li></ol><p>Some parag<img src="shadow.png" width="30px"><img src="shadow.png" width="30px">raph text.</p><ol><li>Siete</li></ol><p>hi</p><p>Hello World!</p><ol><li>Item1 </li><li><b>Item2</b></li></ol><p><b>This is bold text</b><u> Yippee </u><i>This more text  is</i></p><p><i> italic te</i><b><i>xt</i></b><b><u>Th</u></b><u>is is underline text</u></p><ol><li>First item</li><li>Second item</li></ol><table><tbody><tr><td>cell1</td><td><br></td><td>Table cell content</td><td><br></td><td>cell2</td></tr></tbody></table><p>new paragraph.</p><table><tbody><tr><td>New Cell 1</td><td>New Cell 2</td><td>cell3</td><td>cell4</td></tr></tbody></table><p>Cell 5</p><p>Cell 6</p><table><tbody><tr><td>Cell 7</td><td>Cell 8</td></tr></tbody></table><ol><ol><li>Item1</li><li>Item2</li></ol><li>Item3</li></ol></div>
+
+<!--- end test editors --->
+<script>
+var EDITOR = Shadow.namespace;
+var Deltas = [];
+var State = [];
+var validateDeltasEditor = Shadow.connect(document.getElementById('validate-editor') );
+var editor = Shadow.connect(document.getElementById("editor"));
+//var TestBlots = {};
+
+var debug = false;
+
+function test (name, deltas){
+	Shadow.State.update(editor, deltas);
+	test2(name, deltas);
+}
+
+function test2 (name, deltas){
+	Deltas.push(deltas);
+	var plumbline = document.getElementById(name);
+	if (editor.innerHTML != document.getElementById(name).innerHTML){
+		console.log('TEST FAIL: '+name+' editor DOM.');
+		document.getElementById('comparison').innerHTML = plumbline.innerHTML;
+    }
+    var testBlots = Shadow.blotsFromDOM(editor);
+    for (var i =0; i < testBlots.length; i++){
+        if (!check_equality(editor.shadow.blots[i], testBlots[i])){
+            console.log("TEST FAIL: Discrepency of blots between DOMparser and applyDelta for test "+name + " at blot position "+i);  
+            console.log("T ",testBlots[i]," A ", editor.shadow.blots[i])
+            break;
+        }
+    }
+    /*for (var i =0; i < TestBlots[name].length; i++){
+        if (!check_equality(editor.shadow.blots[i], TestBlots[name][i])){
+            console.log("TEST FAIL: Discrepency of blots between DOMparser and applyDelta for test "+name + " at blot position "+i);  
+            console.log("T ",TestBlots[name][i]," A ", editor.shadow.blots[i])
+            break;
+        }
+    }
+//    if (!check_equality(editor.shadow.blots, TestBlots[name])){
+        //console.log("TEST FAIL: Discrepency of blots between DOMparser and applyDelta "+name);
+    //}*/
+	State = Shadow.Delta.mergeDeltas(State, deltas)[0];
+	validateDeltasEditor.innerHTML = "";
+	validateDeltasEditor[EDITOR].blots = [];
+	validateDeltasEditor[EDITOR].undos = [];
+	validateDeltasEditor[EDITOR].ops = [];
+	validateDeltasEditor[EDITOR].undoIndex = [];
+	validateDeltasEditor[EDITOR].cache = [];
+
+//	Shadow.applyDeltas(validateDeltasEditor, State);
+//	Shadow.State.update(validateDeltasEditor, State);
+	Shadow.State.batchUpdate(validateDeltasEditor, Deltas);
+	if (editor.innerHTML !== validateDeltasEditor.innerHTML) {
+		console.log('TEST FAIL: '+name+'. Editor does not match validateDeltasEditor. ');
+	} else {
+		for (var i = validateDeltasEditor[EDITOR].undos.length-1 ; i >= 0; i--) {
+			Shadow.State.undo(validateDeltasEditor);
+			plumbline = plumbline.previousElementSibling;
+			if (validateDeltasEditor.innerHTML !==  plumbline.innerHTML){console.log('Incomplete Undo on Delta '+name + ' on undo # ' + i)
+				console.log(validateDeltasEditor[EDITOR].undos[i], validateDeltasEditor.innerHTML, plumbline.innerHTML, plumbline.previousElementSibling);
+				document.getElementById('comparison').innerHTML = plumbline.innerHTML; die;
+			};
+		}
+	}
+}
+
+var START = Date.now();
+var deltas1 = [{'ins':'hi'},{'ins':'\n'},{'ins':"Hello World!"},{'ins':"\n"},{'ins':"This is bold text", attr:{'B':true} },{'ins':"This is italic text", attr:{'I':true} },{'ins':"This is underline text", attr:{'U':true} }, {'ins':'\n', attr:{'range':'text'} },{'ins':'First item'}, {'ins':'\n'}, {'ins':'Second item'}, {'ins':'\n', attr:{'range':'list'} },
+];
+test('deltas1', deltas1);
+
+var deltas2 = [{'retain':15},{'retain':1, attr:{'range':'list','numbering':'bullet'} },{'ins':"Item1 "},{'ins':"\n"},{'ins':"Item2", attr:{'B':true} },{'ins':'\n', attr:{'range':'list'} },{'retain':17},{'ins':' Yippee ', attr:{'U':true} }, {'retain':4}, {'ins':" more text ", attr:{'I':true} },{'retain':3},{'ins':'\n'},]//{'retain':47},{'retain':12},{'retain':1, attr:{'range':'text'} } ]
+test('deltas2', deltas2);
+
+//var deltas3 = [{"retain":15},{"retain":1,"attr":{"range":false}},{"del":13},{"retain":17,"attr":{"B":true}},{"del":8},{"retain":4,"attr":{"I":true}},{"del":11},{"retain":3,"attr":{"I":true}},{"del":1}]
+//test('deltas3', deltas3);
+
+var deltas3 = [{'ins':'Uno'},{'ins':'\n'},{'ins':'Dos'},{'ins':'\n',attr:{'range':'list'} },{'ins':'Tres'},{'ins':'\n',attr:{'range':'list', 'indent':1} },{'ins':'Quatro'},{'ins':'\n', attr:{'range':'list', 'indent':2} },{'ins':'Cinco'},{'ins':'\n',attr:{'range':'list', 'indent':1} },{'ins':'Seis'},{'ins':'\n',attr:{'range':'list', 'indent':2} }, {'ins':'Siete'},{'ins':'\n',attr:{'range':'list'} },]
+test('deltas3', deltas3);
+
+var deltas4 = [{'ins':'Ocho'},{'ins':'\n'},{'ins':'Nueve'},{'ins':'\n',attr:{'range':'list'} },{'ins':'Diez'},{'ins':'\n',attr:{'range':'list', 'indent':1} },{'ins':'Once'},{'ins':'\n',attr:{'range':'list', 'indent':2} },{'ins':'Doce'},{'ins':'\n',attr:{'range':'list', 'indent':1} },{'ins':'Trece'},{'ins':'\n',attr:{'range':'list', 'indent':2} }, {'ins':'Quatorce'},{'ins':'\n'},{'ins':'Quince'},{'ins':'\n' },]
+test('deltas4', deltas4);
+
+var deltas5 = [{'retain':216}, {'ins':'cell1'},{'ins':'\n'},{'ins':'cell2'},{'ins':'\n',attr:{'range':'tr'} },{'ins':'cell3'},{'ins':'\n'},{'ins':'cell4'},{'ins':'\n',attr:{'range':'tr'} } ]
+test('deltas5', deltas5);
+
+var deltas6 = [{'retain':87},{'retain':1, attr:{'range':'text'} }];
+test('deltas6', deltas6);
+
+var deltas7 = [{'retain':100},{'retain':1, attr:{'range':'text'} }];//,{'retain':102},{'retain':1,attr:{'range':'list'} }]; //// Hopefully, we will normalize the container blot made by last transformation.
+test('deltas7', deltas7);
+if ((editor[EDITOR].blots[46].type != 4) || (editor[EDITOR].blots[15].type != 4) || (editor[EDITOR].blots[31].type != 4) ){ console.log('TEST FAIL: blot normalization failure') }
+
+var deltas8 = [{'del':11}]; /// Demonstrates deletion of inline, block, & container elements
+test('deltas8', deltas8);
+
+var deltas9 = [{'retain':229},{'ins':'Item1'},{'ins':'\n'},{'ins':'Item2'},{'ins':'\n', attr:{'range':'list', 'indent':1} },{'ins':'Item3'},{'ins':'\n', attr:{'range':'list'} }]; /// Demonstrates deletion of inline, block, & container elements
+test('deltas9', deltas9);
+
+var deltas10 = [{'ins':'First'},{'ins':'\n', attr:{'range':'list','indent':3} }] /// Demonstrates deletion of inline, block, & container elements
+test('deltas10', deltas10);
+
+var deltas11 = [{'ins':'Bother'},{'ins':'\n', attr:{'range':'list'} }] /// Demonstrates deletion of inline, block, & container elements
+test('deltas11', deltas11);
+
+var deltas12 = [{'ins':'Bother'},{'ins':'\n', attr:{'range':'text'} },{retain:17},{'retain':1, attr:{'range':'text'} },{retain:15},{'retain':1, attr:{'range':'text'} },{retain:15},{'retain':1, attr:{'range':'text'} }]
+test('deltas12', deltas12);
+
+var deltas13 = [{'retain':88 },{'ins':'Some paragraph text.'},{'ins':'\n'}]
+test('deltas13', deltas13);
+
+var deltas14 = [{'retain':108 },{'retain':1, attr:{'range':'text'} }]
+test('deltas14', deltas14);
+
+var deltas15 = [{'retain':258 },{'ins':'new paragraph.'},{'ins':'\n', attr:{'range':'text'} },{'ins':'New Cell 1'},{'ins':'\n'},{'ins':'New Cell 2'},{'ins':'\n'},{'retain':12},{'ins':'Cell 5'},{'ins':'\n'},{'ins':'Cell 6'},{'ins':'\n', attr:{'range':'tr'} },{'ins':'Cell 7'},{'ins':'\n'},{'ins':'Cell 8'},{'ins':'\n', attr:{'range':'tr'} }];
+test('deltas15', deltas15);
+
+var deltas16 = [{'retain':320 },{'retain':1, attr:{'range':'text'} }]
+test('deltas16', deltas16);
+
+var deltas17 = [{'ins':{'IMG':'shadow.png'} },{'ins':{'IMG':'shadow.png'} }]; ///// inserting embed.
+//Shadow.applyDeltas(editor, deltas17); 
+//Shadow.applyDeltas(editor, deltas17); /// repeat to insert adjacent embed --> can throw off applydeltas.
+test('deltas17', [{'ins':{'IMG':'shadow.png'} },{'ins':{'IMG':'shadow.png'} }]);
+
+var deltas18 = [{'del':1},{'retain':78},{'retain':5, attr:{'U':true} },{'ins':{'IMG':'shadow.png'}, attr:{'width':'30px','U':true} }, {'ins':' o\'clock', attr:{'U':true} }, {retain:16}, {'ins':{'IMG':'shadow.png'}, attr:{'width':'30px'} },{'ins':{'IMG':'shadow.png'}, attr:{'width':'30px'} }]; ///// (1) delete an embed and (2) insert into nested list with attributes, (3) insert into the front, middle & end of an element, and (4) insert identical embeds consecutively. 
+test('deltas18', deltas18);
+
+var deltas19 = [{'del':1},{'retain':305},{'retain':1, attr:{'range':'tr'} }];
+test('deltas19', deltas19);
+
+var deltas20 = [{'retain':69},{'retain':1, attr:{'range':false} }, {'retain':235}, {'retain':1, attr:{'range':false} }] ///// Removing a range attribute invokes ContainerToBlock(), which attaches the demoted Block to the following container.
+test('deltas20', deltas20);
+
+var deltas21 = [{'retain':69},{'retain':1, attr:{'range':'list','indent':1} }] ///// 
+test('deltas21', deltas21);
+
+var deltas22 = [{'retain':69},{'retain':1, attr:{'indent':4} }] ///// BUG FIX: indent only applies to that list Item -> It should not indent following siblings.
+test('deltas22', deltas22);
+
+var deltas23 = [{'retain':60},{'retain':1, attr:{'range':'list'} }, {'retain':3}, {'retain':1, attr:{'indent':1} }] ///// BUG FIX: indent only applies to that list Item -> It should not indent following siblings.
+test('deltas23', deltas23);
+
+var deltas24 = [{'retain':1},{'del':3}] ///// BUG FIX: delete does not error when it begins in the middle of a blot.node.
+test('deltas24', deltas24);
+
+var deltas25 = [{'retain':29},{'retain':5, 'attr':{'B':true} },{'retain':172},{'retain':4, 'attr':{'B':true} }] ///// BUG FIX: retain formatting that extends affects 2 blots --> 2nd blot formatted for the entire original length of retain operation. NOTE: 1st retain operation is not technically parsimonious, since it purports to apply a block blot. However, it exemplifies correct beavhior when encountering deltas that are not perfectly formed to the document.
+//// BUG FIX2: the 2nd bold formatting instruction overwrote the underline attribute, but not the italic attribute. Hmm...
+//// Makes sure that attributes are applied in a consistent order.
+test('deltas25', deltas25);
+
+var deltas26 = [{'retain':10},{'ins':'\n'},{'retain':36 },{'ins':'\n'},{'retain':213},{'ins':'\n'}];
+test('deltas26', deltas26); //// empty blocks should have placeholder "<BR>" elements in order to display properly in the editor field.
+
+var deltas27 = [{'retain':11},{'ins':'\n'},{'retain':1},{'ins':'\n'},{'retain':36 },{'ins':'\n'},{'retain':1},{'ins':'\n'},{'retain':213},{'ins':'\n'},{'retain':1},{'ins':'\n'},];
+test('deltas27', deltas27); //// Making sure that inserting empty blocks into empty blocks is OK.
+
+var deltas28 = [{'retain':12},{'ins':'List Item content'},{'retain':39 },{'ins':'Paragraph of text'},{'retain':216},{'ins':'Table cell content'}]; //// removes placeholder <BR> tags when there is content
+test('deltas28', deltas28); //// empty blocks should have placeholder "<BR>" elements in order to display properly in the editor field.
+
+var deltas29 = [{'retain':4},{'del':6},{'retain':39 }]; //// removes placeholder <BR> tags when there is content
+test('deltas29', deltas29); //// empty blocks should have placeholder "<BR>" elements in order to display properly in the editor field.
+
+
+    /* */
+var deltas30 = true;
+var debug = true;
+var END = Date.now();
+console.log(END-START);
+Shadow.connect(document.getElementById('comparison') );
+//*/
+
+
+//console.log(Shadow.Delta.mergeDeltas(deltas1, deltas2));
+
+////EXPERIMENTING with Quill Delta support for compose() & diff()
+//var b = {}; Quill.imports.delta.call(b, deltas1); var c = {}; Quill.imports.delta.call(c, deltas2); var d = {}; Quill.imports.delta.call(d, editor.blots.slice(0,6)); var e = {}; Quill.imports.delta.call(e, deltas3); var fj = Quill.imports.delta.prototype.compose.call(b, c);
+//var delta = fj.diff(d); var rez =fj.compose(delta); var comp = Quill.imports.delta.prototype.compose.call(c, e)
+
+var merge1A
+var merge1B
+
+
+var diverge1A = [{'retain':12},{'ins':'List Item content'}]
+var diverge1B = [{'retain':14},{'ins':'More list item content'}]
+if (!check_equality(Shadow.Delta.patchDeltas(diverge1A, diverge1B), [{'retain':31},{'ins':'More list item content'}]) ) {
+	console.log('patchDeltas() failure 1')
+}
+
+var diverge2A = [{'retain':12},{'del':16}]
+var diverge2B = [{'retain':14},{'ins':'More list item content'}]
+if (!check_equality(Shadow.Delta.patchDeltas(diverge2A, diverge2B), [{'retain':12},{'ins':'More list item content'}]) ) {
+	console.log('patchDeltas() failure 2')
+}
+
+var diverge3A = [{'retain':6},{'ins':'kim'},{'retain':9},{'ins':'More list item content'}]
+var diverge3B = [{'retain':9},{'del':23}]
+if (!check_equality(Shadow.Delta.patchDeltas(diverge3A, diverge3B), [{'retain':12},{'del':6},{'retain':22},{'del':17}]) ) {
+	console.log('patchDeltas() failure 3')
+}
+
+var diverge4A = [{'retain':6},{'del':13},{'ins':'kim'},{'retain':9},{'ins':'More list item content'}]
+var diverge4B = [{'retain':4},{'del':23}]
+if (!check_equality(Shadow.Delta.patchDeltas(diverge4A, diverge4B), [{'retain':4},{'del':2},{'retain':3},{'del':8}]) ) {
+	console.log('patchDeltas() failure 4')
+}
+
+var diverge5A = [{'retain':6},{'del':13},{'ins':'kim'},{'retain':9},{'ins':'More list item content'}]
+var diverge5B = [{'retain':8},{'del':23}]
+if (!check_equality(Shadow.Delta.patchDeltas(diverge5A, diverge5B), [{"retain":9},{"del":9},{"retain":22},{"del":3}]) ) {
+	console.log('patchDeltas() failure 5')
+}
+
+</script>
+
+<script>
+//    Shadow.Blot
+</script>
+
+
+<body>
+</html>
+
+

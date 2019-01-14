@@ -1,0 +1,38 @@
+citation_details {
+    position:absolute;
+    background-color: white;
+    padding:15px;
+    border-radius: 15px;
+    border-left: 1px solid #aaaaaa;
+    border-bottom: 1px solid #aaaaaa;
+    border-right: 1px solid #aaaaaa;
+}
+
+/*ref div {
+	position:relative;
+	bottom:20px;
+}*/
+
+citation_details ul {
+    list-style: none;
+    margin-left:0px;
+    padding-left: 0px;
+}
+/*	position: absolute; 
+	padding:15px;
+	background-color:white;
+    border-radius: 15px;
+    border-left: 1px solid #aaaaaa;
+    border-bottom: 1px solid #aaaaaa;
+    border-right: 1px solid #aaaaaa;
+    list-style: none;
+    border-top:40px;
+    
+}
+ref ul li {
+	float: none; 
+	position: relative;
+}
+ref ul ul {
+	position:absolute;
+}

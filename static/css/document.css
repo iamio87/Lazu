@@ -1,0 +1,58 @@
+ul.element_selector {
+//	background-color:blue;
+//	width:40px;
+//	display:inline-block;
+}
+#outline {
+	display:inline-block;
+	width:230px;
+	overflow-y:scroll;
+	float:left;
+	position:fixed;
+}
+
+ul.element_selector {
+	list-style: none;
+	padding-left:0px;
+}
+ul.element_selector li ul{
+	list-style: none;
+	padding-left:8px;
+}
+
+ul.element_selector li div {
+	display:block;
+	border-radius:5px;
+	padding:3px;
+	border: 1px solid #aaaaaa;
+	background-color: #efefef;
+				background: #f6f6f6;
+			background: -moz-linear-gradient(top,  #ffffff 0%, #f6f6f6 47%, #ededed 100%);
+			background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(47%,#f6f6f6), color-stop(100%,#ededed));
+			background: -webkit-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+			background: -o-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+			background: -ms-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+			background: linear-gradient(to bottom,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+}
+
+#mce_6 {
+	margin-left:230px;
+	height:575px;
+}
+#mce_6 .mce-edit-area {
+	//height:100%;
+	//height:575px;
+} 
+#mce_0_ifr {
+	font-size:5em;
+	font-family:arial;
+}
+
+/*
+.element_selector {list-style:none;border:1px solid black;width:322px; position:absolute;margin-top:0px; background-color:white;overflow:auto;padding-left:1em;}
+.element_selector li ul {list-style:none;padding-left:1em;}
+.element_selector li div.description {display:none;position:relative;right:1em;color:green;border:1px solid black;min-height:3px;}
+.element_selector li div.description div {color:blue;}
+.element_selector li span:hover {cursor:pointer}
+.element_selector li ul li span:hover {cursor:pointer}
+form {width:600px;position:relative;float:left;margin-left:4px;}*/

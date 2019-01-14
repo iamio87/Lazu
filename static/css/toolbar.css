@@ -1,0 +1,81 @@
+
+div#editorButtons {
+	background-color:gray;
+	position:fixed;
+	left:480px;
+	top:10px;
+	display:none;
+	padding:1px;
+	padding-left:20px;
+	cursor:grabbing;
+	z-index:4;
+}
+
+#editorButtons button.editor-btn {
+	font-family:serif;
+}
+
+#editorButtons button, #editorButtons ul {
+  cursor:default;
+  background: #e3e3e3;
+  background-image: -webkit-linear-gradient(top, #e3e3e3, #cfcf7cf);
+  background-image: -moz-linear-gradient(top, #e3e3e3, #cfcf7cf);
+  background-image: -ms-linear-gradient(top, #e3e3e3, #cfcf7cf);
+  background-image: -o-linear-gradient(top, #e3e3e3, #cfcf7cf);
+  background-image: linear-gradient(to bottom, #e3e3e3, #cfcf7cf);
+  -webkit-border-radius: 6;
+  -moz-border-radius: 6;
+  border-radius: 6px;
+  font-family: Arial;
+  color: #000000;
+  font-size: 14px;
+  padding: 8px 12px 8px 12px;
+  text-decoration: none;
+  margin:4px;
+  outline: 0px solid black;
+  border:0px solid black;
+  text-shadow:none!important;
+  box-shadow:none!important;
+}
+
+#editorButtons button.indent{
+	display:none;
+}
+
+#editorButtons button.outdent {
+	display:none;
+}
+
+#editorButtons ul.list-type-select{
+	display:none;
+	list-style: none;
+	padding:0px;
+	margin:0px;
+	margin-left:20px;
+	margin-right:20px;
+	cursor:default;
+}
+
+#editorButtons button:hover {
+  background: #adadad;
+  background-image: -webkit-linear-gradient(top, #adadad, #919191);
+  background-image: -moz-linear-gradient(top, #adadad, #919191);
+  background-image: -ms-linear-gradient(top, #adadad, #919191);
+  background-image: -o-linear-gradient(top, #adadad, #919191);
+  background-image: linear-gradient(to bottom, #adadad, #919191);
+  text-decoration: none;
+}
+#editorButtons ul.list-type-select li {
+	padding:10px;
+}
+
+#editorButtons ul.list-type-select li ul {
+	position:absolute;
+	list-style:none;
+	margin-left:0px;
+	padding:0px;
+	background-color:gray;
+}
+#editorButtons ul.list-type-select li ul li {
+
+}

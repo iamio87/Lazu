@@ -1,0 +1,38 @@
+
+#version-container {
+	background-color:gray
+	position:fixed;
+}
+
+#version-container button, input {
+	font-family:serif;
+}
+
+#version-container button, input {
+	outline:none;
+  background: #e3e3e3;
+  background-image: -webkit-linear-gradient(top, #e3e3e3, #cfcf7cf);
+  background-image: -moz-linear-gradient(top, #e3e3e3, #cfcf7cf);
+  background-image: -ms-linear-gradient(top, #e3e3e3, #cfcf7cf);
+  background-image: -o-linear-gradient(top, #e3e3e3, #cfcf7cf);
+  background-image: linear-gradient(to bottom, #e3e3e3, #cfcf7cf);
+  -webkit-border-radius: 6;
+  -moz-border-radius: 6;
+  border-radius: 6px;
+  font-family: Arial;
+  color: #000000;
+  font-size: 14px;
+  padding: 8px 12px 8px 12px;
+  text-decoration: none;
+  margin:4px;
+}
+
+#version-container button, input {
+  background: #adadad;
+  background-image: -webkit-linear-gradient(top, #adadad, #919191);
+  background-image: -moz-linear-gradient(top, #adadad, #919191);
+  background-image: -ms-linear-gradient(top, #adadad, #919191);
+  background-image: -o-linear-gradient(top, #adadad, #919191);
+  background-image: linear-gradient(to bottom, #adadad, #919191);
+  text-decoration: none;
+}

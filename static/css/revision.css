@@ -1,0 +1,54 @@
+#revision-container .outline-element div div.title {
+        display:block;
+        margin:20px;
+}
+#revision-container .outline-element div div.content {
+        display:block;
+        margin:20px;
+        border:none;
+}
+#revision-container .outline-element div  {
+    display:block;
+}
+#revision-container .outline-element  {
+margin-left:0px;
+}
+
+#revision-container .outline-element ol {
+	list-style-type: none;
+	margin: 0 0 0 25px;
+}
+#revision-container .outline-element li {
+/*	padding:0;*/
+}
+#revision-container {
+/*    left:50px;
+    top:50px;*/
+    position:fixed;
+    background-color:white;
+    padding:50px;
+    border: 2px solid gray;
+    top:150px;
+/*top: 50%;
+left: 50%;*/
+}
+
+#revision-container .revision_user {
+    margin-left:20px;
+    margin-right:20px;
+}
+
+#revision-container #close_revision{
+    display:block;
+    width:2em;
+    height:2em;
+    background-image: url('/static/image/exit-black.png');
+    background-repeat:no-repeat;
+    background-size:contain;
+    content: ' ';
+    position:relative;
+    float:right;
+    left:50px;
+    bottom:40px;
+    cursor:pointer;
+}

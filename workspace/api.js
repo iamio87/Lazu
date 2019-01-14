@@ -10,6 +10,8 @@ fsPromises = require('fs').promises;
 Route.path = "project";
 const Model = require("../static/models.js");
 
+const {Project, Permission, User} = require("./store");
+
 
 const STATIC = {
     LOG:"L",
@@ -24,7 +26,7 @@ const STATIC = {
 //var LOG = "L"; //// TODO: reference Delta.js
 
 function getAuthorization(PrivilegeLevel){
-    return async function getAuthorization(req, res, next) {
+    return async function _getAuthorization(req, res, next) {
         if (req.params.hasOwnProperty('projectID') ){
             var userID
             if (req.hasOwnProperty('session')){
@@ -34,8 +36,7 @@ function getAuthorization(PrivilegeLevel){
             }
             if (userID === undefined){
                 res.status(403);
-                res.send("Please login to access.")
-//                next(res);
+                res.send("Please login to access.");
                 return;
             }
             const projectID = req.params["projectID"];
@@ -44,7 +45,17 @@ function getAuthorization(PrivilegeLevel){
                     req.session.passport.projects = {};
                 }
                 if (!req.session.passport.projects.hasOwnProperty(projectID)) {
-                    const path = ProjectPath+projectID+"/permissions.json"
+                    req.app.Models.Permission.findOne({
+                        where:{
+                            UserId : userID,
+                            ProjectId : projectID
+                        }
+                    }).then( (permission) => {
+                        req.session.passport.projects[projectID] = permission.privilege;
+                    }).catch( () => {
+                        req.session.passport.projects[projectID] = 0;
+                    })
+/*                    const path = ProjectPath+projectID+"/permissions.json"
                     fsPromises.readFile(path).then( (data) => {
                         const permissions = JSON.parse(data);
                         req.session.passport.projects[projectID] = permissions[userID] || 0; //
@@ -52,15 +63,12 @@ function getAuthorization(PrivilegeLevel){
                         console.log(err);
                         next(err);
                         return ;
-                    }); //// load Permissions JSON.
+                    }); //// load Permissions JSON.*/
                 }
             }
-//            console.log(req.session.passport.projects[projectID], PrivilegeLevel)
             if (req.session.passport.projects[projectID] < PrivilegeLevel) {
-
                 res.status(403);
                 res.send("You are not authorized.");
-                next(res);
                 return;
             }
         }
@@ -88,8 +96,8 @@ async function counterLock(filePath){
     })
 }
 
-Route.use("/:projectID", getAuthorization(3));
-Route.use("/delta/:projectID", getAuthorization(4));
+Route.use("/delta/:projectID", getAuthorization(4)); //// for POST of deltas to project - requires write permission
+Route.use("/:projectID(\\d+)", getAuthorization(3)); //// for GET of entire project history - requires read permission
 
 Route.get('/:projectID', async function (req, res) {
     var doc = 'projects/'+req.params['projectID']+'/log';
@@ -123,7 +131,6 @@ Route.post('/delta/:projectID', jsonParser, async function  (req, res) {
     var newID;
 
     var release = await lockFile.lock(path);
-
     if (deltas[0].hasOwnProperty(STATIC.MAKE)) { ///// MK Delta
         const MODEL = deltas[0][STATIC.MODEL];
         const file = dir+"counter";
@@ -143,7 +150,6 @@ Route.post('/delta/:projectID', jsonParser, async function  (req, res) {
             }
         }
     }
-
     const stream = fs.createReadStream(path, {'start':bytePosition});
     const timestamp = Date.now();
     var oldDeltas = "";
@@ -160,18 +166,16 @@ Route.post('/delta/:projectID', jsonParser, async function  (req, res) {
         oldDeltas = JSON.parse("["+oldDeltas+"]");
 //						Delta.patchDeltas(oldDeltas, newDeltas); //// TODO: patchDeltas assumes same MODEL & FIELD instance.
         //}
-
         const mergedDeltas = newDeltas.reduce(function(acc, delta){ JSON.stringify(delta);
             delta[0][STATIC.TIMESTAMP] = timestamp;
             return acc + ",\n" + JSON.stringify(delta);
         }, ""); //// apply timestamp & pretty stringify.
         fsPromises.appendFile(path, mergedDeltas)
         .then( () => {
-//						console.log("The file was saved!");
             const stats = fs.statSync(path);
             release(); //// release lock on Log file --> allow other threads to edit.
             const fileSizeInBytes = stats.size;
-            res.writeHead(200, {'Content-Type':'application/json'});
+            res.writeHead(200, {'Content-Type':'application/json','Connection':"close"});
             res.write('{"'+STATIC.TIMESTAMP+'":'+deltas[0][STATIC.TIMESTAMP]+',"'+STATIC.LOG+'":'+fileSizeInBytes);
             if (newID){ //// for "MK" operations.
                 res.write(',"'+STATIC.MAKE+'":'+newID);
@@ -182,7 +186,7 @@ Route.post('/delta/:projectID', jsonParser, async function  (req, res) {
         })
         .catch( (err) => {
             release();
-//            console.log(err);
+            console.log(err);
             err();
         })
     });
@@ -198,8 +202,11 @@ Route.get("/", function (req, res){
 });
 
 Route.post("/", jsonParser, async function (req, res){
+    console.log('brewster')
     const post = req.body;
-    req.app.Models.Project.create({title:post.title, description:post.description, UserId:req.session.passport.user})
+//    res.send('hello'); return;
+    req.app.Models.Project.create(req.app, req.session.passport.user, post)
+/*    req.app.Models.Project.create({title:post.title, description:post.description, UserId:req.session.passport.user})
     .then( (project) => {
         return project
     })
@@ -211,23 +218,49 @@ Route.post("/", jsonParser, async function (req, res){
     .then( (project) => {
         const dir = ProjectPath+project.id
         fsPromises.mkdir(dir)
-        .then( ()=>{
+        .then( () => {
             const timestamp = Date.now();
-            const init = `[{"M": "Project", "mk":${project.id}, "u":${req.session.passport.user}, "T":${timestamp}}],
-                [{"M": "Project", "F": "title", "ed": ${project.id}, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.title}}],
-                [{"M": "Project", "F": "description", "ed": ${project.id}, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.description}}],\n`
+            //// note, we don't user the project.id for "mk" and "ed" attributes. we don't want unnecessary dependency. Numeric ID of project should not matter to internal state of project.
+            const init = `[{"M": "Project", "mk":true, "u":${req.session.passport.user}, "T":${timestamp}}],
+                [{"M": "Project", "F": "title", "ed":true, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.title}}],
+                [{"M": "Project", "F": "description", "ed":true, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.description}}],\n`
             fs.writeFile(dir+"/log", init, ()=>{}); //// create Project log
             fs.writeFile(dir+"/counter", "1", ()=>{}); //// create object counter
-            fs.writeFile(dir+"/permissions.json", `{${request.session.passport.user}:7}`, ()=>{}); //// create Permissions file, which is backup to DB.
+            fs.writeFile(dir+"/permissions.json", `{${request.session.passport.user}:7}`, ()=>{}); //// create Permissions file, which is backup to DB. Not required.
         })
         return project;
-    })
-    .then( (project) =>{
+    })*/
+    .then( (project) => {
+        res.status(200);
         res.send(project.id);
     })
-    .catch( ()=>{
+    .catch( () => {
         res.send('error');
     })
 });
+
+Route.delete("/:projectID", async function (req, res){
+    const post = req.body;
+    Permission.read(req.app, req.params.projectID, req.sessions.passport.user)
+    .then( (permission) => {
+        if (permission.privilege < 7){
+            throw({});
+        }
+    })
+    .catch( () => {
+        res.status(403);
+        res.send("Unsufficient privilege.");
+    })
+    .then( () => {
+        return Project.delete(req.app, req.sessions.passport.user, req.params.projectID )
+    })
+    .then( () => {
+        res.send(true);
+    })
+    .catch( () => {
+        res.send('error');
+    })
+});
+
 module.exports = Route;
 //module.exports = counterLock;

@@ -1,0 +1,81 @@
+	.task_list {
+		list-style: none;
+		padding-left: 2px;
+	}
+	.task_list li {
+		border: 2px solid #d4d4d4;
+		border-radius: 3px;
+		border-color: #D4D4D4 #D4D4D4 #BCBCBC;
+		padding: 0 10 0 10;
+		margin: 14px;
+		cursor: move;
+		background: #f6f6f6;
+	}
+	.task_list li div div.description{
+		background: -moz-linear-gradient(top,  #ffffff 0%, #f6f6f6 47%, #ededed 100%);
+		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(47%,#f6f6f6), color-stop(100%,#ededed));
+		background: -webkit-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+		background: -o-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+		background: -ms-linear-gradient(top,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+		background: linear-gradient(to bottom,  #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=0 );
+	}
+	.profile-image {
+		top:0px;position:relative;display:inline-block;float:left;
+	}
+
+	.profile-image img {
+		display:block; float:left;width:20px;border-radius:10px;margin-left:2px;
+	}
+	.profile-image div {
+		display:none;background-color:white;position:absolute;padding-left:20px;padding-right:20px;border-bottom-left-radius: 10px;border-bottom-right-radius:10px;border: 1px solid #efefef; min-width: 110px;
+		z-index: 4; // make it appear on top of other elements
+	}
+
+	.time-capsule {
+		margin-right: auto; 
+		margin-left: auto; 
+		border-bottom: 3px solid;
+	}
+
+	.time-capsule div {
+		display:none;
+		position:absolute;
+		background-color: white;
+	}
+
+	.urgent {
+		border-color: #FFAA44;
+	}
+	.normal {
+		border-color: #FFCC22;
+	}
+	.discretionary {
+		border-color: #FFDD66;
+	}
+
+	div#tabs {
+		border:none;
+	}
+	div#tabs ul.ui-tabs-nav {
+		background:none;
+		background-image:none;
+		border:none;
+	}
+
+	.status {
+		text-align: right; width:200px;
+	}
+	.status div {
+		display:none;
+		position:relative;
+		background-color: #aaaaaa;
+		border:1px solid gray;
+		text-align: left;
+	}
+	.status div span {
+		display:block;
+	}
+	#project_members {
+		display:none;
+	}

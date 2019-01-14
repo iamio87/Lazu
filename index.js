@@ -28,13 +28,6 @@
 	const Delta = require("./static/delta.js").default;
 	console.log('db', DB);
 
-/*	var promise = function(func){
-		new Promise( (resolve, reject) => {
-			func();
-			resolve();
-		})
-	}*/
-
     // If deployed in our demo site, we store the sessions using Redis.
     // Locally, we store the sessions in memory.
     sessionConfig = {

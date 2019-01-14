@@ -1,0 +1,148 @@
+var Version = {}
+Version['catalogue'] = []
+Version['index'] = {}
+Version['library'] = {}
+
+Version['current_version'] = 0
+
+format = function(data){
+    dict = {}
+    dict['outlineElements'] = {}
+    for (i in data['outlineElements']){
+	var element = data['outlineElements'][i]
+	var id = element['id']
+	dict['outlineElements'][id] = element
+    }
+
+    dict['citations'] = {}
+    for (i in data['citations']){
+	var citation = data['citations'][i]
+	var id = citation['id']
+	dict['citations'][id] = citation
+    }
+    dict['sources'] = {}
+    for (i in data['sources']){
+	var source = data['sources'][i]
+	var id = source['id']
+	dict['sources'][id] = source
+    }
+    dict['outline']=data['outline']
+    if (data['project']){ dict['project']=data['project']}
+    return dict
+}
+
+Version['select'] = {}
+Version.select['outline']= function(version){
+    setTimeout(function(){
+	Outline.createOutline(version)
+    }, 200)
+}
+Version.select['sources']=function(version){
+    setTimeout(function(){
+	Sources.createSources(version)
+    }, 200)
+}
+Version.select['source']=function(version){
+    setTimeout(function(){
+	Source.createSource(version)
+	Outline.createOutline(version)
+    }, 200)
+}
+
+
+Version.setDownload = function(){
+    var _id = Version.current_version
+    if (_id == 0){
+	var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(Lawccess.data));
+	var _title = Lawccess.context.project.title+"_version:"+Date.now()+".json"
+    } else {
+	var data = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(Version.library[_id]));
+	var _title = Version.library[_id].project.title+"_version:"+Version.index[_id].timestamp+".json"
+    }
+    document.getElementById('download_version').setAttribute('href', 'data:json/octet-stream,'+data)
+    document.getElementById('download_version').setAttribute('download',_title)
+}
+
+
+document.getElementById('see_versions').addEventListener('click', function(e){
+    $.get("http://lawccess/versioning/project_version_info/1", function(response){
+	Version['catalogue'] = JSON.parse(response)
+	for (i in Version.catalogue){
+	    Version.catalogue[i] = JSON.parse(Version.catalogue[i])
+	    var _id = Version.catalogue[i].id
+	    Version.index[_id]=Version.catalogue[i]
+	}
+	var $slider = $("#version-slider").slider()
+	$slider.slider('option','max',Version.catalogue.length)
+	$slider.slider('option','value',Version.catalogue.length)
+	$slider.on('slidechange', function(event, ui){
+	    var _value = $slider.slider('option','value')
+	    //// Select a previous version
+	    if (Version.catalogue[_value]){
+		var _id = Version.catalogue[_value].id
+		Lawccess.context.editable = false
+		Version['current_version'] = _id
+		if (typeof(Version.library[_id])=="undefined") { //// If not in library, GET data for version
+		    $.get("http://lawccess/versioning/get_version/"+_id, function(response) {
+			var _temp=JSON.parse(response)
+			Version.library[_id] = format(_temp)
+			Version.setDownload()
+			Version.select[Lawccess.context.location](Version.library[_id])
+		    })
+		} else { //// If version data is in library
+		    Version.setDownload()
+		    Version.select[Lawccess.context.location](Version.library[_id])
+		}
+	    //// Select the current working version
+	    } else {
+		Lawccess.context.editable = true
+		Version['current_version']=0
+		Version.setDownload()
+		Version.select[Lawccess.context.location](Lawccess.data)
+	    }
+	})
+    })
+})
+
+document.getElementById('save_version').addEventListener('click', function(){
+    var r = confirm("Save a Version of this Project");
+    if (r == true) {
+	var url = '/versioning/save_version/'+Lawccess.context.project
+	$.post(url, function(response){
+	    var version = JSON.parse(response)
+	    Version.index[version.id] = Version.catalogue.push(version)
+	    if ($("#version-slider").html()!=""){
+		var $slider = $("#version-slider").slider()
+		$slider.slider('option','max',Version.catalogue.length)
+		$slider.slider('option','value',Version.catalogue.length-1)
+	    }
+	})
+    } else {
+
+    }
+})
+
+document.getElementById('delete_version').addEventListener('click', function(){
+    var url = '/versioning/delete_version/'+""
+})
+
+
+FileUploader(document.getElementById('version-file'),'/versioning/import_version_to_project/'+Lawccess.context.project, function(response){ 
+//    var data = JSON.parse(serverResponse)
+//    Version.index[data.id]=Version.catalogue.push(data)   
+    cool(response)
+    console.log(response)
+})
+
+function cool(data){
+    placed = false
+    max = Version.catalogue.length
+    for (i=0;i<Version.catalogue.length;i++){
+	if (data.timestamp < Version.catalogue[i]){
+	    if (placed==false){
+		Version.index[data.id] = Version.catalogue.splice(i,0,data)
+		placed=true
+	    }
+	}
+    }
+}

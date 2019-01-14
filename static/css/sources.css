@@ -1,0 +1,16 @@
+#sources-container th.title {width:300;}
+#sources-container th.reference {width:300;}
+#sources-container th.year {width:50;}
+#sources-container th.note {width:450;}
+#sources-container td {border: 1px dotted #FFCCFF;}
+#sources-container td { }
+#sources-container th {
+    background-color:#FFCCFF;
+}
+
+table#sources_table > tbody > tr > td {
+	padding:2px; 
+	border:1px solid gray;
+	cursor:pointer;
+}
+

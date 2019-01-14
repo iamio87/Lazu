@@ -1,0 +1,27 @@
+.add_projects {display:none;}
+.remove_projects {display:none;}
+
+.project_list {
+    position:relative;
+    float:left;
+    width:450;
+}
+.project_list ul {list-style:none;}
+.project_list ul li {display:inline;}
+.add_projects ul li {display:block;}
+
+.members_list {
+    position: relative;
+    float: right;
+    width:450;
+}
+.members_list ul {list-style:none;}
+.members_list ul li {display:inline;}
+.members_list div ul li {display:block;}
+
+.add_members {display:none;}
+.remove_members {display:none;}
+
+ul.groups-nav li {display:inline; width:250px; font-size: 1em; background-color:#9a44d0;}
+
+.groups-nav {display:inline-block; list-style:none}

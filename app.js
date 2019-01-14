@@ -24,15 +24,18 @@ const App = (function(){
     app.use(passport.initialize());
     app.use(passport.session());
 
+    app.settings = settings; /// required for workspace/store.js
 //    app.engine('html', es6Renderer);
 //    app.set('view engine', 'html');
 //    const myTemplater = require("./templates/es6render");
 //    app.Template = myTemplater;
-
+    const homePage = require("./home/routes").homePage
     var Modules;
     var Models = {};
+    app.Models = Models
 
     async function init (modules){
+        console.log('hi')
         const FORCE = true;
         modules.map( (moduleName) => {
             ///// handle model sync
@@ -47,10 +50,12 @@ const App = (function(){
                             Models[relation.model].hasMany(ORMobject, { onDelete: 'cascade', hooks: true, as:relation.name });
                             ORMobject.belongsTo(Models[relation.model]);
                         } else if (relation.type == "M2M"){
-                            try{
+                            try {
                                 Models[relation.model].belongsToMany(ORMobject, { as:relation.reverse, through:relation.through });
                                 ORMobject.belongsToMany(Models[relation.model], { as:relation.name, through:relation.through });
-                            } catch(e){console.log(e)}
+                            } catch(e){
+                                console.log('App.js error:', e)
+                            }
                         }
                     })
                 })
@@ -58,16 +63,14 @@ const App = (function(){
 
             //// apply routing
             try {
-                var routes = require("./"+moduleName+"/routes");
-                var apiRoute = routes.path || moduleName;
-//                if (moduleName === "home"){console.log("hi", apiRoute, routes);}
+                const routes = require("./"+moduleName+"/routes");
                 app.use("/"+moduleName+"/", routes);
             } catch (e) {  }
 
             //// apply routing specific for APIs.
             try {
-                var routes = require("./"+moduleName+"/api");
-                var apiRoute = routes.path || moduleName;
+                const routes = require("./"+moduleName+"/api");
+                const apiRoute = routes.path || moduleName;
                 app.use("/api/"+apiRoute+"/", routes);  
             } catch (e) {  }
         });
@@ -97,12 +100,12 @@ const App = (function(){
         });
         passport.deserializeUser(function(id, done) {
             var query = User.findOne({where:{"id":id}});
-            query.then((user)=>{
+            query.then((user)=> {
                 done(null, user);
             });
             query.catch((err)=> {
                 done(err);
-            })
+            });
         });
 
         process.env.PORT = '8080';
@@ -120,42 +123,13 @@ const App = (function(){
 //            console.log("req: ", req.url, "\n", req.headers);
             next();
         });
+        app.use("/api", function(req, res, next){
+            console.log(req.path);
+            next()
+        })
         app.use('/static', express.static('./static') );
 
-        app.get("/", async function(req, res){ //// homepage
-            if (req.session.passport){
-//                const Models = req.app.Models;
-                Models.Permission.findAll({
-                    where:{
-                        UserId:req.session.passport.user
-                    }
-                }).then( (permissions) =>{
-                    return permissions.reduce( (acc, permission) => {
-                        if (permission.privilege > 1){
-                            acc.push( permission.ProjectId );
-                            return acc;
-                        }
-                    }, [])
-                }).then( (permittedProjects) =>{
-                    return Models.Project.findAll({
-                        where:{
-                            id:permittedProjects
-                        }
-                    })
-                }).then( (projects) => {
-                    const ret = projects.map( (project) => {
-//                        console.log(project);
-                        return `<div><p><a href="/workspace/${project.id}">project.title</a></p><p>${project.description}</p></div>`;
-                    })
-                    res.send(ret.join());
-                }).catch( (err) =>{
-                    res.send(err());
-                })
-//                return res.send("hell0");
-            } else {
-                return res.send("not logged in");
-            }
-        });
+        app.get("/", homePage);
     }
 
     return {init:init, db:sequelize, express:app, Models:Models}

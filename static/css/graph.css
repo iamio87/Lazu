@@ -1,0 +1,59 @@
+div#instanceParent {
+margin-left:auto;
+margin-right:auto;
+width:30%;
+margin-bottom:25;
+text-align:center;
+border:2px solid #CC6699
+}
+
+.edit-icon {
+    width:12px;
+}
+
+div#instance {
+width:150px;
+margin-left:auto;
+margin-right:auto;
+}
+
+div#instance div {
+        display:inline-block;
+        width:150px;
+        height:130px;
+        display: table-cell;
+        vertical-align:middle;
+        text-align: center;
+        background-color:blue;
+        border-radius:75px;
+}
+
+div#instanceChildrenContainer {
+width:850;margin-left:auto;margin-right:auto;
+border:#CC6699 2px solid;
+}
+
+div.firstColumn {
+width:30%;display:inline-block;border:1px solid #CC66FF;float:left;
+}
+
+div.secondColumn {
+margin-left:5%;display:inline-block;margin-right:5%;width:250;border:1px solid #CC66FF;
+}
+
+div.thirdColumn {
+width:30%;display:inline-block;border:1px solid #CC66FF;float:right;
+}
+
+
+div#instanceChildrenContainer ul {list-style:none;margin-left:0px;padding-left:0px;}
+div#instanceChildrenContainer ul li {padding:8px;}
+div#instanceChildrenContainer ul li a {display:inline-block;padding:6px;border-radius:7px;}
+
+
+.contact {background-color:#EDDAD1;}
+.contact a {color:black;}
+.project {background-color:#CCFFCC;}
+.group {background-color:#CCFF99;}
+
+
