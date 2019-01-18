@@ -223,7 +223,7 @@ var Shadow = (function(){
 				},true)
 			}
 
-			function getAttr(blot) { // simple utility, helpful for comparing attrs even if the blot doesn't have an attr.
+			function getAttr (blot) { // simple utility, helpful for comparing attrs even if the blot doesn't have an attr.
 				if (blot.attr){
 					return blot.attr;
 				}
@@ -792,7 +792,7 @@ var Shadow = (function(){
 
 			function parseDOM(DOM){
 				return {};
-				var Attr = {
+/*				var Attr = {
 					"OL":{"range":"list"},
 					"UL":{"range":"list","numbering":"bullet"},
 					"DL":{"range":"list","numbering":"description"},
@@ -800,7 +800,7 @@ var Shadow = (function(){
 					"TABLE":{},
 					"DIV":{"range":"text"}
 				}
-				return Attr[DOM.tagName];
+				return Attr[DOM.tagName];*/
 			}
 
 			ret["cleanAttr"] = cleanAttr;
@@ -955,10 +955,6 @@ var Shadow = (function(){
 			return Inline.create(delta.ins, delta.attr);
 		}
 
-		function _parseDOM(DOM, blots, context){
-
-		}
-
 		function parseDOM (DOM, blots, context){
 			if (blots.length){
 				var lastBlot = blots.slice(-1)[0];
@@ -966,7 +962,7 @@ var Shadow = (function(){
 			} else {
 				var startIndex = 0;
 			}
-			if (Block.tags.indexOf(DOM.tagName) > -1){
+			if (Block.tags.indexOf(DOM.tagName) > -1){ //// BLOCK or CONTAINER ---> check for child CONTAINERs
 				var childNodes = Array.from(DOM.childNodes).filter(function(_child){ if (Container.tags.indexOf(_child.tagName) == -1) {return _child} });
 				var childContainers = Array.from(DOM.childNodes).filter(function(_child){ if (Container.tags.indexOf(_child.tagName) > -1) {return _child} });
 			} else {
@@ -978,7 +974,7 @@ var Shadow = (function(){
 				blot = { 'ins': DOM.nodeValue, 'length':DOM.nodeValue.length, 'index': startIndex, 'node': DOM, 'position':blots.length, 'child':DOM, 'type':Blot.types.INLINE };
 				blots.push(blot);
 				return blot;
-			} else if (Blot.Embed.tags.indexOf(DOM.tagName) > -1){
+			} else if (Blot.Embed.tags.indexOf(DOM.tagName) > -1){ //// EMBED
 				blot = { 'ins':Blot.Embed.parseDOM(DOM), 'length':1, 'index':startIndex, 'node':DOM, 'position':blots.length, 'child':DOM, 'type':Blot.types.EMBED};
 				var attr = Blot.Embed.parseDOMstyle(DOM);
 				if (blot[INSERT] === null){
@@ -987,7 +983,7 @@ var Shadow = (function(){
 				if (attr) { blot.attr = attr; }
 				blots.push(blot);
 				return blot;
-			} else if (Blot.Inline.tags.indexOf(DOM.tagName) > -1) {
+			} else if (Blot.Inline.tags.indexOf(DOM.tagName) > -1) { //// INLINE
 				var ret = [];
 				childNodes.forEach(function(child){
 					var childBlot = parseDOM(child, blots, context);
@@ -1005,7 +1001,7 @@ var Shadow = (function(){
 					childBlot["attr"] = Delta.Attr.mergeAttr(newAttr, (childBlot.attr || {}) );
 				})
 				return ret;
-			} else if (Blot.Block.tags.indexOf(DOM.tagName) > -1) {
+			} else if (Blot.Block.tags.indexOf(DOM.tagName) > -1) { //// BLOCK
 				var ret = [];
 				childNodes.forEach(function(child){
 					parseDOM(child, blots, context);
@@ -1030,7 +1026,8 @@ var Shadow = (function(){
 					parseDOM(child, blots, context);
 				})
 				return blots
-			} else if (Blot.Container.tags.indexOf(DOM.tagName) > -1){
+			} else if (Blot.Container.tags.indexOf(DOM.tagName) > -1){ //// CONTAINER
+				context['NonTextRanges'] = true;
 				if (blots.length){ 
 					var precedingBlock = blots.slice(-1)[0]
 					if (precedingBlock.type === Block.type){ ///// HANDLES when "text" RANGE ends
@@ -1065,8 +1062,9 @@ var Shadow = (function(){
 		function blotsFromDOM (canvas){
 			canvas.normalize(); //// tells browser to normalize elements on Canvas Element
 			var blots = []
+			var context = {'indent':-1, 'NonTextRanges':false}
 			canvas.childNodes.forEach(function(child){
-				blots = parseDOM(child, blots, {indent:-1});
+				blots = parseDOM(child, blots, context);
 			});
 			var index = 0;
 			blots.map(function(blot, pos){
@@ -1074,6 +1072,15 @@ var Shadow = (function(){
 				index = index + blot.length;
 				blot.position = pos;
 			});
+			var lastBlot = blots.slice(-1)[0]; //// if document ends with 'text' range, ensure that appropriate 'range' attr is set.
+			if (!Delta.Attr.getAttr(lastBlot)[RANGE]){
+//				if (context['NonTextRanges'] === true){ //// OPTION: TODO: if document only has 1 text range, we might skip the last 'range' attribute for compatability reasons with quill.js.
+					lastBlot.attr = lastBlot.attr || {};
+					lastBlot.attr[RANGE] = 'text'; 
+					lastBlot.type = Blot.Container.type; //// make blot CONTAINER type. 	
+//				}
+			}
+
 			return blots;
 		}
 
@@ -1115,7 +1122,31 @@ var Shadow = (function(){
 		}
 
 		function mergeBlot (blots, blot1, blot2) {
-			if (blot1.node.nodeType == 3) {
+			if (blot1) {
+				if (blot2) {
+					if (blot1.type + blot2.type === 2){
+						if (Delta.Attr.check_attr_equality(blot1.attr, blot2.attr) ) {
+							if (blot1.child.nextSibling == blot2.child){
+								if (blot2.child){
+									blot2.child.remove()
+								} else {
+									blot2.node.remove();
+								}
+								blot1.node.replaceData(blot1.node.length, 0, blot2.node.nodeValue);
+								blot1.ins = blot1.node.nodeValue;
+								blot1.length = blot1.ins.length;
+								blots.splice(blot2.position, 1);
+								return blot1;
+							}
+						}
+					}
+				}
+			}
+			return null
+
+//			if ((blot2) && Delta.Attr.check_attr_equality(blot1.attr, blot2.attr) && (blot2.type + blot1.type === 2) && (blot2.child.nextSibling == blot1.child)){
+//			} else {return null}
+/*			if (blot1.node.nodeType == 3) {
 				if (blot2.child){
 					blot2.child.remove()
 				} else {
@@ -1125,14 +1156,16 @@ var Shadow = (function(){
 				blot1.ins = blot1.node.nodeValue;
 				blot1.length = blot1.ins.length;
 				blots.splice(blot2.position, 1);
+				return blot1;
 			} else {
-				die;
-			}
+				return null;
+			}*/
 		}
 
-		function getNextInlineBlot(blots, position) {
+		function getNextInlineBlot (blots, position) {
 			for (var i = position; i < blots.length; i++) {
 				var blot = blots[i];
+//				blot.position = i; //// insertBlot() relies on applyDelta() to fix blot position. Uncomment this if we need blot.position to be accurate before applyDelta().
 				if (blot.type < Blot.types.BLOCK){
 					return blot;
 				}
@@ -1150,7 +1183,7 @@ var Shadow = (function(){
 			return null; //// no previous inline blots
 		}
 
-		function getChildInlineBlot(blots, position){
+		function getChildInlineBlot (blots, position){
 			if (position > 0){
 				var blot = blots[position-1];
 				if (blot.type < Blot.types.BLOCK){
@@ -1227,7 +1260,7 @@ var Shadow = (function(){
 			return null;
 		}
 
-	return {init:init, getNextBlockBlot:getNextBlockBlot, getNextBlockOrContainerBlot:getNextBlockOrContainerBlot, getContainerBlot:getContainerBlot, getPreviousBlockBlot:getPreviousBlockBlot, getPreviousContainerBlot:getPreviousContainerBlot, getPreviousBlockOrContainerBlot:getPreviousBlockOrContainerBlot, insertBlot:insertBlot, mergeBlot:mergeBlot, getNextInlineBlot:getNextInlineBlot, getPreviousInlineBlot:getPreviousInlineBlot, getPreviousBlot:getPreviousBlot, getChildInlineBlot:getChildInlineBlot};
+	return {init:init, getNextBlockBlot:getNextBlockBlot, getNextBlockOrContainerBlot:getNextBlockOrContainerBlot, getContainerBlot:getContainerBlot, getPreviousBlockBlot:getPreviousBlockBlot, getPreviousContainerBlot:getPreviousContainerBlot, getPreviousBlockOrContainerBlot:getPreviousBlockOrContainerBlot, insertBlot:insertBlot, mergeBlot:mergeBlot, getNextInlineBlot:getNextInlineBlot, getPreviousInlineBlot:getPreviousInlineBlot, getPreviousBlot:getPreviousBlot, getChildInlineBlot:getChildInlineBlot, getPreviousInlineBlot:getPreviousInlineBlot};
 	})()
 
 	var Transform = (function(){
@@ -1279,6 +1312,7 @@ var Shadow = (function(){
 						} else {
 							canvas.appendChild(newBlot.node); /// for text paragraphs
 						}
+						newBlot.node.appendChild(document.createElement("BR")); //// bug fix for test Deltas30. Bootstrapped blocks did not have <br> placeholder.
 						return;
 					}
 					if (blot.type >= Blot.types.BLOCK) { //// 2.1. insert into BLOCK or CONTAINER
@@ -1374,7 +1408,6 @@ var Shadow = (function(){
 						}
 					} else if (blot.type >= Blot.types.BLOCK) {
 						Transform.Blot.removeBlockBlot(canvas, blot);
-//// TODO
 //							console.log(Transform.DOM.removeEmptyNodesByChild)
 //							Transform.DOM.removeEmptyNodesByChild(blot.node);
 						blot.length = 0;
@@ -1385,10 +1418,7 @@ var Shadow = (function(){
 			function applyDeltas (canvas, deltas){
 				deltas = Delta.splitNewLineDeltas( safeClone(deltas) );
 				var history = [];
-				var blotIndex = 0;
 				var deltaIndex = 0; 
-				var opIndex = 0;
-		
 				var counter = 0;
 				for (var i = 0; i < canvas[EDITOR].blots.length; i++) { //// INSERT DELTAS
 					counter ++
@@ -1452,7 +1482,7 @@ var Shadow = (function(){
 										break; //// if current blot is block, go to next. Insert is probably text for next block element.
 									}
 								}
-								i++; //// if there is an insert operation, increment blots loop counter.
+//								i++; //// if there is an insert operation, increment blots loop counter.
 							}
 						}
 
@@ -1461,6 +1491,12 @@ var Shadow = (function(){
 							history.push( Delta.createDelta(DELETE, (delta[INSERT].length || 1) ) );
 						} else if (position === HEAD){
 							if (delta[DELETE]){
+								if (blot.position === canvas[EDITOR].blots.length-1){ //// Don't Delete last BLOCK element if it has valid inline elements. /// Test #33.
+									var childBlot = Parchment.getChildInlineBlot(canvas[EDITOR].blots, blot.position)
+									if (childBlot !== null){
+										break;
+									}
+								}
 								if (typeof(blot[INSERT]) === 'string') {
 									history.push( Delta.createDelta(INSERT, blot[INSERT].substr(start, end), blot.attr ) );
 								} else { //// embed object
@@ -1523,14 +1559,16 @@ var Shadow = (function(){
 						(blot.child || blot.node).remove();
 						canvas[EDITOR].blots.splice(i, 1);
 						i--; /// must decrement to account for missing blot.
-					} else if ((prevBlot) && Delta.Attr.check_attr_equality(blot.attr, prevBlot.attr) && (prevBlot.type + blot.type === 2) && (prevBlot.child.nextSibling == blot.child)){ //// TODO: change 'child' check for explicit Blot.type check.
-						Parchment.mergeBlot(canvas[EDITOR].blots, prevBlot, blot);
-						i--; 
 					} else if (blot.type === Blot.types.CONTAINER) {
 						var correction = Normalize.normalizeContainerBlot(canvas, blot);
 						if (correction){ //// Needed for ContainerBlotNormalization();
 							history = Delta.mergeDeltas(history, correction)[0];
 						}
+					} else {
+						var didMerge = Parchment.mergeBlot(canvas[EDITOR].blots, prevBlot, blot); 
+						if (didMerge){//// mergeBlot does tests whether blots are appropriate for merging. If merge happend, it spliced one blot from array. Decrement counter.
+							i--;
+						} 
 					}
 				}
 				
@@ -1538,6 +1576,7 @@ var Shadow = (function(){
 					/// If there are remaining deltas, they are inserted outside the range of the existing document.
 					///// SETUP INITIAL VARIABLES
 					var length = canvas[EDITOR].blots.length;
+					var historyLength = history.length;
 					if (length > 0){
 						var prev = canvas[EDITOR].blots[length-1]
 						var firstIndex = prev.index + prev.length;
@@ -1548,10 +1587,32 @@ var Shadow = (function(){
 					///// APPLY DELTAS IN REVERSE ORDER
 					deltas.reverse().map(function(delta, index){ //// we do last deltas first, because parents are listed after children in parchment.
 						if (!delta.ins) {
+							//// we allow deletion in 1 specific situation - when last BLOCK is deleted, but a new block is inserted afterward to replace it.
+							if ( delta[DELETE] > 0 ){
+								if ((index === deltas.length -1) && (index !== 0) ){ //// If index > 0, we have a guarantee that there is now a new BLOCK in the document after the current BLOCK blot, so it is safe to delete this BLOCK blot.
+									history.splice(historyLength, 0, Delta.createDelta(INSERT, blot[INSERT], blot.attr ) ); //// add it to UNDO history at the proper position. // Test 34 Undos.
+									var correction = applyDelta(canvas, canvas[EDITOR].blots[length-1], delta, {contained:contained, position:HEAD, index:lastIndex} );
+									if (correction){ //// Needed for ContainerBlotNormalization();
+										history = Delta.mergeDeltas(history, correction)[0];
+									}
+									canvas[EDITOR].blots.splice(length-1, 1); //// remove deleted BLOCK blot.
+									canvas[EDITOR].blots[length-1].position--; //// decrement the blot position --> essential for accurate mergeBlot(); /// Test 34 Undos
+									var isMerged = Parchment.mergeBlot(canvas[EDITOR].blots, canvas[EDITOR].blots[length-2], canvas[EDITOR].blots[length-1]);//// merge identical inline elements. Test #34.
+									if (isMerged){
+										length--;/// The loop to normalize Blots depends on this value --> update it since we may have removed an original blot from document.
+									}
+									var correction = Normalize.normalizeContainerBlot(canvas, Parchment.getContainerBlot(canvas[EDITOR].blots, length-2)); //// we might be deleting a Container Blot --> so we have to normalize the containers in the document.
+									if (correction){ //// Needed for ContainerBlotNormalization();
+										history = Delta.mergeDeltas(history, correction)[0];
+									}
+									length--; /// The loop to normalize Blots depends on this value --> update it since we definitely removed one original blot from document.
+									firstIndex = canvas[EDITOR].blots[length-1].index + canvas[EDITOR].blots[length-1].length; // update the initial index since we are starting from a different blot.
+								}
+							}
 							return; 
 							throw ("Error, Invalid parchment delta. canvas expected insert-transformation, because the operation exceeds the bounds of the document.");
 						}
-						if (index == 0){ ///// bootstrap first delta
+						if (index === 0){ ///// bootstrap first delta
 							if (delta.ins !== "\n"){ ///// if not block or container --> throw error --> can insert inline or embed without block.
 								console.log(delta, canvas[EDITOR].blots); //die;
 								throw ("Error, Invalid parchment delta"); 
@@ -1569,13 +1630,13 @@ var Shadow = (function(){
 							if (correction){ //// Needed for ContainerBlotNormalization();
 								history = Delta.mergeDeltas(history, correction)[0];
 							}
+							Parchment.mergeBlot(canvas[EDITOR].blots, canvas[EDITOR].blots[length], canvas[EDITOR].blots[length+1]);//// merge identical inline elements. Test #34.
 						}
 						history.push( Delta.createDelta(DELETE, (delta[INSERT].length || 1) ) );
 					})
 
 					///// NORMALIZE BLOTS
 					canvas[EDITOR].blots.slice(length).reduce( function(editorIndex, blot, PosIndex) {
-//						console.log(editorIndex, PosIndex)
 						blot.position = length + PosIndex;
 						blot.index = editorIndex;
 						if (blot.type === Blot.types.CONTAINER) {
@@ -1741,6 +1802,14 @@ var Shadow = (function(){
 			function insertBlockBlot (canvas, newBlot){
 				var nextBlockBlot = Parchment.getNextBlockOrContainerBlot(canvas[EDITOR].blots, newBlot.position + 1);
 				nextBlockBlot.node.parentElement.insertBefore(newBlot.node, nextBlockBlot.node);
+				var lastInlineChild = Parchment.getChildInlineBlot(canvas[EDITOR].blots, newBlot.position);
+				var counter = 0
+				while (lastInlineChild !== null) {
+					counter++;
+					if (counter == 200){die;}
+					newBlot.node.insertBefore(lastInlineChild.child, newBlot.node.firstChild);
+					lastInlineChild = Parchment.getChildInlineBlot(canvas[EDITOR].blots, lastInlineChild.position);
+				}
 				if (!newBlot.node.firstChild) {
 					newBlot.node.appendChild( document.createElement('BR') ); //// if no child elements, add placeholder to make it display properly in DOM
 				}
@@ -1780,8 +1849,6 @@ var Shadow = (function(){
 					blot.node.remove();
 					if (canvas.lastChild) { //// If last child was nested list node, it might leave artifacts --> clean them up.
 						DOM.removeEmptyNodes(canvas.lastChild);
-//					if (blot.parent) { //// Alternate version, but probably less efficient
-//						DOM.removeEmptyNodesByChild(blot.parent);
 					}
 					return;
 				}
@@ -1791,7 +1858,8 @@ var Shadow = (function(){
 				}
 				var lastChild = Parchment.getChildInlineBlot(canvas[EDITOR].blots, blot.position); /// Attach all Inline elements to following block.
 				if (lastChild){
-					if (nextBlockBlot.node.firstChild.tagName == "BR" && (canvas[EDITOR].blots[blot.position+1] !== nextBlockBlot.node.firstChild) ){ //// Normalizing nextBlockBlot if it contains empty placeholder.
+//					if (nextBlockBlot.node.firstChild == null){console.log(nextBlockBlot)}
+					if (nextBlockBlot.node.firstChild && (nextBlockBlot.node.firstChild.tagName == "BR") && (canvas[EDITOR].blots[blot.position+1] !== nextBlockBlot.node.firstChild) ){ //// Normalizing nextBlockBlot if it contains empty placeholder.
 						//// only removes placeholder if we know we are appending children from blot.node
 						nextBlockBlot.node.firstChild.remove();
 					}
@@ -2003,8 +2071,8 @@ var Shadow = (function(){
 					} else if (blot.type === Blot.types.BLOCK) {
 						Transform.Blot.changeBlockToContainer(canvas, blot, Delta.Attr.mergeAttr(delta.attr, blot.attr) );
 					}
-				} else if (Delta.Attr.getAttr(blot)['RANGE'] && (Delta.Attr.getAttr(delta)['RANGE'] === false)) { /// remove container
-					Transform.Blot.changeContainerToBlock(canvas, blot, Delta.Attr.mergeAttr(delta.attr, blot.attr) )
+				} else if (blotAttr[RANGE] && (deltaAttr[RANGE] === false)) { /// remove container
+					Transform.Blot.changeContainerToBlock(canvas, blot, Delta.Attr.mergeAttr(delta.attr, blot.attr) );
 				} 
 				if (delta.attr.hasOwnProperty('indent')) {
 					if (blot.type === Blot.types.CONTAINER ) { //// INDENT can only apply to Container elements
@@ -2022,7 +2090,7 @@ var Shadow = (function(){
 			function normalizeContainerBlot (canvas, blot) { //// TODO: This causes a bug with undo operations.
 				var prevCon = Parchment.getPreviousContainerBlot(canvas[EDITOR].blots, blot.position -1);
 				if (blot.parent) {
-					if (blot.parent === canvas) { //// TODO: is this still necessary?
+					if (blot.parent === canvas) { //// TODO: is this still necessary? 1/15/19 YES.
 						delete blot.parent; 
 					} else if (['UL','OL'].indexOf(blot.parent.tagName) > -1) { //// make lists to be HTML compliant
 						normalizeListHTML(canvas, blot, prevCon);
@@ -2619,7 +2687,8 @@ var Shadow = (function(){
 				'ArrowLeft':'arrowLeft',
 				'ArrowUp':'arrowMove',
 				'ArrowDown':'arrowMove',
-				'Delete':'delete'
+				'Delete':'delete',
+//				'End':'getFreshRange'
 			};
 			KeyMap[ SHIFT ] = {
 				'Tab':'reverseTab',
@@ -2686,6 +2755,11 @@ var Shadow = (function(){
 		})()
 
 		var Actions = {
+			'getFreshRange': function (canvas, event, range){
+				setTimeout(function(){ //// refresh range after movement.
+					Range.getFreshRange(canvas);
+				},0)
+			},
 			'undo': function (canvas, event, range) {
 				State.undo(canvas);
 			},
@@ -2865,9 +2939,8 @@ var Shadow = (function(){
 					}
 					deltaIndex = prevBlock.index + 1;
 				} else if ((prevBlock.attr) && (prevBlock.attr.range === ops[0].range) ) {
-					console.log('NUMBERING 2')
+					console.log('SO FAR UNUSED CONDITION')
 					if (Container.isEqual(prevBlock.attr, ops[0])){
-						console.log('NUMBERING 3')
 						deltas.push({retain:prevBlock.index}, {retain:1, attr:{range:false, indent:false} });
 						deltaIndex = prevBlock.index + 1;
 					}
@@ -2909,6 +2982,15 @@ var Shadow = (function(){
 					var deltas = [{"retain":range.start},{"del":1}];
 				}
 				State.transform(canvas, deltas);
+			},
+			'insertListRange':function(canvas, event, range){
+
+			},
+			'insertTableRange':function(canvas, event, range){
+
+			},
+			'insertTextRange':function(canvas, event, range){
+
 			}
 		}
 
@@ -2917,6 +2999,11 @@ var Shadow = (function(){
 			if (func){
 				event.preventDefault();
 				var ret = Actions[func](canvas, event, range);
+			} else {
+				console.log('hi');
+				setTimeout(function(){ //// refresh range after movement.
+					Range.getFreshRange(canvas);
+				},10)
 			}
 		}
 
@@ -2990,6 +3077,8 @@ var Shadow = (function(){
 						Shortcut(canvas, e, range)
 					} else if (e.keyCode == 9){ //// TAB
 						e.preventDefault();
+						Shortcut(canvas, e, range);
+					} else if (e.keyCode === 35){
 						Shortcut(canvas, e, range);
 					}
 				}
@@ -3225,7 +3314,7 @@ var Shadow = (function(){
 			if (anchorBlot == null){
 			
 			}
-			console.log(anchorBlot, range.anchorBlot)
+			//console.log(anchorBlot, range.anchorBlot)
 			range.anchorBlot = anchorBlot;
 			range.focusBlot = focusBlot;
 			if (range.isReversed){ //// false by default.
