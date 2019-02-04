@@ -37,8 +37,9 @@ var App = (function(){
 
 	function update(Deltas){
 		Deltas.map(function(deltas){
-			var model = deltas[0][STATIC.MODEL];
-			Modules[model].update(deltas);
+			var target = Shadow.App.getDeltaTarget(deltas[0]);
+			var model = target.model;//delta[0][App.STATIC.MODEL];
+			Modules[model].update(deltas, target);
 		});
 	}
 
@@ -57,10 +58,12 @@ var App = (function(){
 		return $.get("/api/project/"+Lawccess.context.project, {}).then(function(response, code){
 			Outline.createOutline("Project Title");
 			var BytePosition = response.splice(-1).pop()[App.STATIC.LOG];/// get byte position object & remove from deltas array.
-			console.log("bytepos", BytePosition)
+			console.log("bytepos", BytePosition);
 			response.map(function(delta){
-				var model = delta[0][App.STATIC.MODEL];
-				var undo = Modules[model].update(delta);
+				var target = Shadow.App.getDeltaTarget(delta[0]);
+				var model = target.model;//delta[0][App.STATIC.MODEL];
+				if (model === undefined){console.log("delta", delta)}
+				var undo = Modules[model].update(delta, target);
 				State.ops.push(delta);
 				State.undos.push(undo);
 			});
@@ -77,12 +80,12 @@ var App = (function(){
 
 
 App.register('Node', {
-	'update':function(delta){
-		if (delta[0].hasOwnProperty(App.STATIC.FIELD)){
-			if (delta[0][App.STATIC.FIELD] == 'heading'){
-				var element = document.getElementById("Node.h."+delta[0][App.STATIC.EDIT]);
+	'update':function(delta, target){
+		if (target.verb === "ed"){
+			if (target.field == 'heading'){
+				var element = document.getElementById("Node.h."+target.id);
 			} else {
-				var element = document.getElementById("Node.c."+delta[0][App.STATIC.EDIT]);
+				var element = document.getElementById("Node.c."+target.id);
 			}
 			return Shadow.State.update(element, delta);
 		} else {
@@ -90,6 +93,12 @@ App.register('Node', {
 		}
 	},
 });
+
+App.register('Source', {
+	'update':function(delta){
+		Source.State.update(delta);
+	}
+})
 
 $(document).ready(function(){
 	App.init();

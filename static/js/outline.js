@@ -47,8 +47,8 @@ Outline = (function(){
 		var ID = canvas.getAttribute("id").substr(7); /// #
 		var MODEL = canvas.getAttribute("id").substr(0,4); /// "node"
 		var FIELD = canvas.getAttribute("id").substr(5,1); /// "content", "heading"
-		delta.splice(0, 0, {'M':MODEL, 'F':dict[FIELD], 'ed':ID});
-		return $.post('/api/project/delta/'+Lawccess.context.project, JSON.stringify({'L':Lawccess.context.logPos,'V':'VALIDATOR', 'D':delta}))
+		delta.splice(0, 0, {'ed':MODEL +"."+ ID+"."+dict[FIELD]});
+		return $.post('/api/project/delta/'+Lawccess.context.project, JSON.stringify({'L':Lawccess.context.logPos, 'D':delta}))
 		.then(function(response){
 			delta[0]['T'] = response['T'];
 			Lawccess.context.logPos = response['L'];
@@ -154,7 +154,7 @@ Outline = (function(){
 		var parentID = getParentID(element);
 		var ID = element.getAttribute('value');
 		var user = Lawccess.context.user;
-		var delta = [{"M": "Node", "rm":ID, "U":user}];
+		var delta = [{"rm":"Node."+ID, "u":user}];
 		var VALIDATOR = 0;
 		if (element.previousSibling){
 //			element.previousSibling.focus();
@@ -272,10 +272,9 @@ Outline = (function(){
 			position ++; //// insert AFTER current node. 
 			//// b/c top-level nodes must be decremented any to convert from actual position to canonical position, just skip increment.
 		}
-		var delta = {"M": "Node", "mk":0, "ptg":parentId, "pos":position, "U":user}; //// "mk" is set to 0, so server knows to give us an ID.
+		var delta = {"mk":"Node", "ptg":parentId, "pos":position, "u":user}; //// "mk" is set to 0, so server knows to give us an ID.
 		Outline.collapse_element(element);
-		var VALIDATOR = 0;
-		return $.post('/api/project/delta/'+Lawccess.context.project, JSON.stringify({'L':Lawccess.context.logPos,'V':VALIDATOR, 'D':[delta]})).then(function(response){
+		return $.post('/api/project/delta/'+Lawccess.context.project, JSON.stringify({'L':Lawccess.context.logPos, 'D':[delta]})).then(function(response){
 			delta['T'] = response['T'];
 			delta['mk'] = response['mk'];
 			Lawccess.context.logPos = response['L'];
@@ -528,8 +527,7 @@ Outline = (function(){
 			position --;
 		}
 		var delta = {
-			"M":"Node",
-            "mv":element.getAttribute('value'),
+            "mv":"Node." + element.getAttribute('value'),
             "ptg":new_parent_id,
 			"pos":position,
         }
@@ -838,7 +836,8 @@ Outline = (function(){
 	var API = (function(){
 
 		function mv (delta){ //// move()
-			var child = document.getElementById("list_"+String(delta['mv']));
+			var id = Shadow.App.getDeltaTarget(delta).id || String(delta['mv']);
+			var child = document.getElementById("list_"+id);
 			var newParent = document.getElementById("list_"+String(delta["ptg"]));
 			var oldParentID = getParentID(child);
 			var oldList = child.parentElement;
@@ -871,7 +870,8 @@ Outline = (function(){
 		}
 
 		function mk (delta, focus){ ///// make()
-			var child = nestedListRow(delta['mk']);
+			var id = Shadow.App.getDeltaTarget(delta).id || String(delta['mk']);
+			var child = nestedListRow(id);
 			var newParent = document.getElementById("list_"+String(delta["ptg"]));
 			var index = delta['pos'];
 			if (delta["ptg"] != 0){
@@ -897,7 +897,9 @@ Outline = (function(){
 		}
 
 		function rm (delta){ //// remove()
-			var child = document.getElementById("list_"+String(delta['rm']));
+			var id = Shadow.App.getDeltaTarget(delta).id || String(delta['rm']);
+			var child = document.getElementById("list_"+id);
+//			var child = document.getElementById("list_"+String(delta['rm']));
 			var parentList = child.parentElement;
 			var parentID = getParentID(child);
 			var position = Array.from(parentList.children).indexOf(child);
@@ -935,6 +937,8 @@ Outline = (function(){
 					return API.mk(delta);
 				} else if (delta.hasOwnProperty('rm') ){
 					return API.rm(delta);
+				} else {
+					//// TODO: HANDLE ERROR
 				}
 			});
 		});

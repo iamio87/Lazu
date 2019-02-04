@@ -8,8 +8,12 @@ var Shadow = (function(){
 		var DELETE = 'delete';
 		var RETAIN = 'retain';
 		var ATTRIBUTES = 'attributes';
-		var RANGE = 'range'
+		var RANGE = 'range';
 		var EDITOR = 'quill';
+		var EDIT = "ed";
+		var MOVE = "mv";
+		var REMOVE = "rm";
+		var MAKE = "mk";
 	} else { //// profile === 'lazu'
 		var INSERT = 'ins';
 		var DELETE = 'del';
@@ -17,6 +21,10 @@ var Shadow = (function(){
 		var ATTRIBUTES = 'attr';
 		var EDITOR = 'shadow';
 		var RANGE = 'range';
+		var EDIT = "ed";
+		var MOVE = "mv";
+		var REMOVE = "rm";
+		var MAKE = "mk";
 	}
 
 	var PARCHMENT = "blots";
@@ -67,7 +75,7 @@ var Shadow = (function(){
 				//// attach shortcut functions to toolbar buttons.
 				//// contextual buttons provided by Range module.
 
-	function safeClone(obj){ //// Important utility function used throughout editor.
+	function safeClone (obj){ //// Important utility function used throughout editor.
 		/// preserves references to functions in lists.
 		if (Array.isArray(obj)){
 			return obj.map(function(child){
@@ -515,7 +523,7 @@ var Shadow = (function(){
 			return batchMerge(Deltas.reverse());
 		}
 
-		return {Attr:Attr, createDelta:createDelta, normalizeDeltas:normalizeDeltas, mergeDeltas:mergeDeltas, patchDeltas:patchDeltas, splitNewLineDeltas:splitNewLineDeltas, batchMerge:batchMerge}; //// Delta API
+		return {Attr:Attr, createDelta:createDelta, normalizeDeltas:normalizeDeltas, mergeDeltas:mergeDeltas, patchDeltas:patchDeltas, splitNewLineDeltas:splitNewLineDeltas, batchMerge:batchMerge }; //// Delta API
 	})();
 
 	//// Check if Server or Client
@@ -711,7 +719,7 @@ var Shadow = (function(){
 					"DL":{"range":"list","numbering":"description"},
 					"TR":{"range":"tr"},
 					"TABLE":{},
-					"DIV":{"range":"text"}
+//					"DIV":{"range":"text"}
 				}
 				return Attr[DOM.tagName];
 			}
@@ -1056,15 +1064,25 @@ var Shadow = (function(){
 				}
 				return blots;
 			}  else {
-				return;
+				return blots;
 			}
 		}
-		function blotsFromDOM (canvas){
+		function blotsFromDOM (canvas){ 
 			canvas.normalize(); //// tells browser to normalize elements on Canvas Element
 			var blots = []
 			var context = {'indent':-1, 'NonTextRanges':false}
 			canvas.childNodes.forEach(function(child){
-				blots = parseDOM(child, blots, context);
+				if (child.nodeType === 3){ //// have to account for copy-pasta
+					blots.push(Delta.createDelta(INSERT, child.textContent));
+				} else if (child.tagName === "DIV"){ //// COPY-PASTA --> change top-level divs to paragraphs. Ignore all other divs
+					var P = document.createElement("P");
+					child.parentElement.insertBefore(P, child);
+					Transform.DOM.attachPreviousSibs(P, child.lastChild);
+					child.remove();
+					blots = parseDOM(P, blots, context);
+				} else {
+					blots = parseDOM(child, blots, context);
+				}
 			});
 			var index = 0;
 			blots.map(function(blot, pos){
@@ -2446,9 +2464,7 @@ var Shadow = (function(){
 
 
 		function receive (canvas, Deltas, delta, undo) {
-			console.log('receive', Deltas);
-//			if (Deltas.length == 0){return}
-
+			console.log('receive', JSON.stringify(Deltas) );
 			var OpIndex = canvas[EDITOR][OPS].length; // reset OpIndex. Another transaction may have completed.
 			if (OpIndex > 0) {
 				var lastTimestamp = canvas[EDITOR][OPS][OpIndex-1][TIMESTAMP];
@@ -2475,9 +2491,11 @@ var Shadow = (function(){
 			}
 
 			var collab = [];
-			var Undos = []
+			var Undos = [newUndo]
+//			var Undos = [];
 			for (var i = 0; i < Deltas.length ; i++ ) {
 				var _delta = Deltas[i];
+				console.log('receive5',_delta)
 				if (_delta[0][TIMESTAMP] <= lastTimestamp ){ //// If we accidentally get updates twice, ignore.
 					continue;
 				}
@@ -2493,6 +2511,7 @@ var Shadow = (function(){
 					Undos.push(finalUndo);
 				}
 			}
+			canvas[EDITOR][OPS].push(delta); //// Add our transmitted delta to ops array.
 
 			//// Almost freakin' done! We also need to patch the cache & collect its corresponding undos.
 			canvas[EDITOR][CACHE].map(function(op, index, array){
@@ -2506,11 +2525,12 @@ var Shadow = (function(){
 			//// Begin by reversing the undo array, then merge the undo deltas.
 			var collabUndo = [];
 			Undos.reverse().map(function(_undo){
+				console.log('receive3', _undo)
 				var patch = Delta.batchMerge(collabUndo);
 				collabUndo.push(_undo)
 				canvas[EDITOR][UNDOS].splice(OpIndex, 0, Delta.patchDeltas(patch, _undo));//Delta.patchDeltas(newUndo, _undo) );
 			});
-
+			console.log('receive1', Undos, newUndo);
 			//// Undos should be right. Note that the UNDOS array may include ops that are still in CACHE.
 			canvas[EDITOR][COUNTER] = 0; //// Release the lock on the dirty() & save() counter.
 			if (canvas[EDITOR][CACHE].length > 0) { /// If there are still ops in cache, be sure to fire dirty().
@@ -2633,13 +2653,24 @@ var Shadow = (function(){
 
 		function undo (canvas) {
 			var undoIndex = canvas[EDITOR].undoIndex - 1 ;
-			var undo = canvas[EDITOR][UNDOS].slice( undoIndex, (undoIndex+1 || undefined) ); 
+			var undo = canvas[EDITOR][UNDOS].slice( undoIndex, (undoIndex+1 || undefined) );
 			if (undo.length > 0) {
 				Transform.Delta.applyDeltas(canvas, undo[0]);
 				canvas[EDITOR].undoIndex --;
+				canvas[EDITOR].cache.push(undo[0])
 			}
 			//// we don't want to dirty() undo or redo, because we never delete histories & looking back at history should not create new history
 			//// However, if a user undos, then leaves the canvas field, we have 'blur' event fire save(). We trust blur to 'save' us.
+
+			//// GUI --> return index of last op for Range.setRangeByIndex();
+			return undo[0].reduce(function(acc, op){
+				if (op.hasOwnProperty(INSERT)){
+					acc = acc+(op[INSERT].length || 1);
+				} else if (op.hasOwnProperty(RETAIN)){
+					acc = acc+op[RETAIN]
+				}
+				return acc;
+			}, 0)
 		}
 
 		function redo (canvas) {
@@ -2648,8 +2679,25 @@ var Shadow = (function(){
 				var redo = canvas[EDITOR].ops.slice( undoIndex, (undoIndex+1 || undefined) )[0];
 				Transform.Delta.applyDeltas(canvas, redo);
 				canvas[EDITOR].undoIndex ++;
+				canvas[EDITOR].cache.splice(-1, 1);
+
 			}
 			//// No dirty() call.
+
+
+			//// GUI --> return index of last op for Range.setRangeByIndex();
+			if (undoIndex < 0){
+				return redo.reduce(function(acc, op){
+					if (op.hasOwnProperty(INSERT)){
+						acc = acc+(op[INSERT].length || 1);
+					} else if (op.hasOwnProperty(RETAIN)){
+						acc = acc+op[RETAIN]
+					}
+					return acc;
+				}, 0)
+			} else {
+				return null;
+			}
 		}
 
 		return {init:init, transform:transform, undo:undo, redo:redo, dirty:dirty, save:save, update:update, batchUpdate:batchUpdate, receive:receive}
@@ -2688,25 +2736,30 @@ var Shadow = (function(){
 				'ArrowUp':'arrowMove',
 				'ArrowDown':'arrowMove',
 				'Delete':'delete',
-//				'End':'getFreshRange'
+				'Backspace':'backspace',
+//				'End':'getFreshRange',
+//				'Home':'getFreshRange'
 			};
 			KeyMap[ SHIFT ] = {
 				'Tab':'reverseTab',
 				'ENTER':'pageBreak',
-				'ArrowRight':'arrowMove',
-				'ArrowLeft':'arrowMove',
-				'ArrowUp':'arrowMove',
-				'ArrowDown':'arrowMove',
+//				'ArrowRight':'arrowMove',
+//				'ArrowLeft':'arrowMove',
+//				'ArrowUp':'arrowMove',
+//				'ArrowDown':'arrowMove',
 			};
 			KeyMap[ CTRL ] = {
 				'b':'bold',
 				'u':'underline',
 				'i':'italicize',
 				'z':'undo',
-				'ArrowRight':'arrowMove',
-				'ArrowLeft':'arrowMove',
-				'ArrowUp':'arrowMove',
-				'ArrowDown':'arrowMove',
+				'a':'selectAll',
+				'Delete':'deleteCTL',
+				'Backspace':'backspaceCTL',
+//				'ArrowRight':'arrowMove',
+//				'ArrowLeft':'arrowMove',
+//				'ArrowUp':'arrowMove',
+//				'ArrowDown':'arrowMove',
 			};
 			KeyMap[ META ] = {
 
@@ -2761,10 +2814,20 @@ var Shadow = (function(){
 				},0)
 			},
 			'undo': function (canvas, event, range) {
-				State.undo(canvas);
+				if (canvas[EDITOR].undoIndex + canvas[EDITOR].undos.length > 1) {//// Don't undo 1st operation, which initializes the 1st block. Editor automatically inserts a block if canvas is empty --> which will throw off redo() ops. TODO: incorporate this protection to State.undo()?
+					var newIndex = State.undo(canvas);
+					if (document.activeElement === canvas){ //// If called from Canvas, reset Caret position. No caret reposition if called from outside of canvas
+						Range.setRangeByIndices(canvas, newIndex, newIndex);
+					}
+				}
 			},
 			'redo': function (canvas, event, range) {
-				State.redo(canvas);
+				var newIndex = State.redo(canvas);
+				if (newIndex !== null){ //// if redo op was performed, see if we should reset the Caret position.
+					if (document.activeElement === canvas){ //// If called from Canvas, reset Caret position. No caret reposition if called from outside of canvas
+						Range.setRangeByIndices(canvas, newIndex, newIndex);
+					}
+				}
 			},
 			'insert': function (canvas, event, range) {
 				if (range.isRange){ //// if range --> delete selection.
@@ -2974,14 +3037,30 @@ var Shadow = (function(){
 					Range.getFreshRange(canvas);
 				},0)
 			},
-			'delete':function(canvas, event, range){
+			'backspace':function(canvas, event, range){
 				event.preventDefault();
+				if (range.isRange){
+					var deltas = [{"retain":range.start},{"del":range.end-range.start}];
+				} else {
+					var deltas = [ {"retain":(range.start-1 || 0)} , {"del":1} ];
+				}
+				State.transform(canvas, deltas);
+				Range.setRangeByIndices(canvas, range.start-1, range.start-1);//// typical range reset after deletion
+			},
+			'delete':function(canvas, event, range){
+				if (event.type !== "cut"){ ///we only want "cut" event to fire normally.
+					event.preventDefault();
+				}
 				if (range.isRange){
 					var deltas = [{"retain":range.start},{"del":range.end-range.start}];
 				} else {
 					var deltas = [{"retain":range.start},{"del":1}];
 				}
 				State.transform(canvas, deltas);
+				Range.setRangeByIndices(canvas, range.start, range.start);//// typical range reset after deletion
+			},
+			'deleteCTL':function(canvas, event, range){
+//				event.preventDefault();
 			},
 			'insertListRange':function(canvas, event, range){
 
@@ -2991,6 +3070,9 @@ var Shadow = (function(){
 			},
 			'insertTextRange':function(canvas, event, range){
 
+			},
+			'selectAll':function(canvas, event, range){
+				Range.setRangeByIndices(canvas, 0, canvas[EDITOR].blots.slice(-1)[0].index);//// typical range reset after deletion
 			}
 		}
 
@@ -3000,14 +3082,14 @@ var Shadow = (function(){
 				event.preventDefault();
 				var ret = Actions[func](canvas, event, range);
 			} else {
-				console.log('hi');
 				setTimeout(function(){ //// refresh range after movement.
 					Range.getFreshRange(canvas);
-				},10)
+//					Range.getFreshRange(this);
+				},5)
 			}
 		}
 
-		function Shortcut_special (canvas, event, range) { //// no preventDefault();
+		function Shortcut_special (canvas, event, range) { //// no preventDefault(); Allows the Application to listen for shortcuts, uninterrupted by the canvas.
 			var func = KeyBoard.KeyMap[KeyBoard.contextCode(event)][event.key];
 			if (func){
 				var ret = Actions[func](canvas, event, range);
@@ -3036,6 +3118,21 @@ var Shadow = (function(){
 					Range.setRangeByIndices(canvas, 0, 0);
 				}
 			});*/
+			canvas.addEventListener('paste', function(e){
+				var range = canvas[EDITOR].range;
+				e.preventDefault();
+				Paste(canvas, e, range);
+			})
+			canvas.addEventListener('copy', function(e){
+				Clipboard.copyText = window.getSelection().toString();
+			})
+			canvas.addEventListener('cut', function(e){
+				e.preventDefault();
+				document.execCommand('copy');
+				setTimeout(function(){
+					Actions.delete(canvas, e, canvas[EDITOR].range);
+				}, 5);
+			})
 			canvas.addEventListener('mouseup', function(e){ //// 'click' will fire too soon, & doesn't fire when selecting more than 1 node.
 				if (this === document.activeElement){ //// make sure editor is active so that window.getSelection() will return objects within the editor.
 					Range.getFreshRange(this);
@@ -3067,18 +3164,14 @@ var Shadow = (function(){
 						if (!e.altKey) {
 							Shortcut_special(canvas, e, range);
 						}
-					} else if (e.keyCode == 8){ /// backspace
-						e.preventDefault();
-						var deltas = [{"retain":range.start-1},{"del":1}];
-						State.transform(canvas, deltas);
-						Range.move(this, -1);
-
 					} else if (e.keyCode == 46) { //// delete
 						Shortcut(canvas, e, range)
 					} else if (e.keyCode == 9){ //// TAB
 						e.preventDefault();
 						Shortcut(canvas, e, range);
 					} else if (e.keyCode === 35){
+						Shortcut(canvas, e, range);
+					} else {
 						Shortcut(canvas, e, range);
 					}
 				}
@@ -3095,27 +3188,10 @@ var Shadow = (function(){
 		return { connect:connect, Shortcut:Shortcut, Actions:Actions, KeyBoard:KeyBoard, Toolbar:Toolbar}
 	})();
 
-
-/*	var Actions = {
-		'delete':[],
-		'return':[],
-		'backspace':[],
-		'indent':[],
-		'cursorRight':[],
-		'cursorLeft':[],
-		'insert':[],
-		'character':[],
-		'clean':[],
-		'undo':[],
-		'redo':[],
-	}*/
-
 	var Range = (function(){
 
 		function init(canvas){
 			canvas[EDITOR]['range'] = rangeObject();
-//			canvas[EDITOR]['range'].startBlot = canvas.firstChild;
-//			canvas[EDITOR]['range'].endBlot = canvas.lastBlot;
 		}
 
 		function rangeObject(){
@@ -3299,7 +3375,6 @@ var Shadow = (function(){
 				var focusBlot = getBlotByDOM(canvas, selection.focusNode); 
 				var anchorBlot = getBlotByDOM(canvas, selection.anchorNode);
 			}
-//			console.log(anchorBlot, selection.anchorNode, selection.focusNode.children)
 			//// handle if selection is reversed ////
 			if (range.isRange){
 				if (focusBlot.index < anchorBlot.index){
@@ -3314,7 +3389,6 @@ var Shadow = (function(){
 			if (anchorBlot == null){
 			
 			}
-			//console.log(anchorBlot, range.anchorBlot)
 			range.anchorBlot = anchorBlot;
 			range.focusBlot = focusBlot;
 			if (range.isReversed){ //// false by default.
@@ -3328,14 +3402,13 @@ var Shadow = (function(){
 				range.startBlot = anchorBlot;
 				range.endBlot = focusBlot;
 			}
-//			console.log(range.startBot, focusBlot, anchorBlot);
 			updateRangeSelection(canvas);
 			getInlineRangeFormat(canvas);
 			return range;
 			
 		};
 
-		function setRangeByIndices(canvas, start, end){
+		function setRangeByIndices (canvas, start, end){
 			var range = canvas[EDITOR].range;
 			range.start=start;
 			range.end=end;
@@ -3381,11 +3454,93 @@ var Shadow = (function(){
 			}
 		};
 
+		function ctrlMove(canvas, range, direction){
+			var startBlot = range.endBlot;
+			var startChar = startBlot.ins[range.end - startBlot.index]
+//			range.start
+
+//			/w+/.test(char)
+		}
+
 		return {restoreRangeByIndex:restoreRangeByIndex, collapse:collapse, move:changePosition, getBlocksInRange:getBlocksInRange, setRangeByIndices:setRangeByIndices, getFreshRange:getFreshRange, getBlocksInRange:getBlocksInRange, init:init}
 
 	})();
 
-	return {blotsFromDOM:Blot.blotsFromDOM,applyDeltas:Transform.Delta.applyDeltas, connect:Canvas.connect, Range:Range, Blot:Blot, Canvas:Canvas, Delta:Delta, namespace:EDITOR, Parchment:Parchment, State:State, Transform:Transform, STATIC:STATIC };
+	var Clipboard = (function(){
+		var copyText = "";
+		return {copyText:copyText};
+	})()
+	var Paste = function(canvas, evt, range){
+		var text = evt.clipboardData.getData('text/plain').replace(/\n\n/gi,"\n");
+//		if (Clipboard.copyText === text ) { //// It looks like the copied text came from within this application --> let's trust it so we can preserve formatting. This is too dangerous, for now.
+//			var fragment = document.createElement('div');
+//			fragment.contentEditable = true;
+//			fragment.innerHTML = evt.clipboardData.getData('text/html').replace(/\n/gi,"");
+//			var deltas = Blot.blotsFromDOM(fragment);
+//		} else { //// use plain text.
+			var deltas = Delta.splitNewLineDeltas([Delta.createDelta(INSERT, text)]);
+//		}
+
+		deltas.splice(0, 0, Delta.createDelta(RETAIN, range.start))
+		if (range.end - range.start > 0){
+			deltas.splice(1, 0, Delta.createDelta(DELETE, (range.end-range.start) ) );
+		}
+		State.transform(canvas, deltas);
+		Range.setRangeByIndices(canvas, range.start+text.length, range.start+text.length);//// typical range reset after deletion
+	};
+
+	var App = (function(){ ///// App() extends the DELTA format to include transformation made in the application context like "mk", "mv", "rm", and "set"
+		function getData(data, fieldName){ //// field names with periods indicate nested data structure.
+			return fieldName.split('.').reduce(function(acc, key){
+				return acc[key];
+			}, data);
+		}
+
+		function unpack(fieldName, verb) {
+			return fieldName.split(".").reduce(function(acc, key, index){
+				if (index === 0){
+					acc.model = key;
+				} else if (index === 1){
+					acc.id = key;
+				} else {
+					if (acc.field.length > 0){
+						acc.field = acc.field + "." + key;
+					} else {
+						acc.field = acc.field + key;
+					}
+				}
+				return acc;
+			}, {'model':'', 'id':'', 'field':'', 'verb':verb})
+		}
+
+		function getDeltaTarget(delta){
+			if (delta.hasOwnProperty(EDIT)){
+				return unpack(delta[EDIT], EDIT)
+			}
+			if (delta.hasOwnProperty(MAKE) ){
+				return unpack(delta[MAKE], MAKE)
+			}
+			if (delta.hasOwnProperty(MOVE)){
+				return unpack(delta[MOVE], MOVE)
+			}
+			if (delta.hasOwnProperty(REMOVE)){
+				return unpack(delta[REMOVE], REMOVE)
+			}
+			console.log('no property', delta)
+		}
+
+		function getDOM(obj){
+			var ID = obj.model + obj.field + obj.id;
+			return document.getElementById(ID);
+		}
+
+		function setID(DOM, obj){
+			DOM.id = obj.model + obj.field + obj.id;
+		}
+		return {getDeltaTarget:getDeltaTarget}
+	})();
+
+	return {blotsFromDOM:Blot.blotsFromDOM,applyDeltas:Transform.Delta.applyDeltas, connect:Canvas.connect, Range:Range, Blot:Blot, Canvas:Canvas, Delta:Delta, namespace:EDITOR, Parchment:Parchment, State:State, Transform:Transform, STATIC:STATIC, App:App };
 
 })();
 
@@ -3393,101 +3548,3 @@ if (typeof(exports) !== "undefined"){
 	exports.default = Shadow.Delta; //// export Delta module for use on Server.
 	exports.static = Shadow.STATIC;
 }
-
-/*
-var SUPPRESS = true;
-Shadow.test = (function test(){
-	if (SUPPRESS) {
-		return
-	}
-	function check_equality (A, B){ //// http://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
-		var a = typeof(A); var b = typeof(B)
-		if (a != b){
-			if ( (a || false) == (b || false) ){return true;} ////functional equality ---> TODO: do I 
-			return false
-		} //// different types cannot be equal
-		
-		if (Array.isArray(A) && Array.isArray(B)){
-			for (var i = 0, l = A.length; i < l; i++) { 
-				if (!check_equality(A[i], B[i])){
-					return false;
-				}
-			}
-		} else if (a=="object") {
-			var _a = Object.keys(A).sort(); var _b = Object.keys(B).sort(); /// get sorted keys
-			if (_a.length != _b.length){ //// must have same number of keys
-				return false
-			}
-			for (var i = 0, l = _a.length; i < l; i++) { //// must have same key:value pairs
-				if (!check_equality(A[_a[i]], B[_b[i]])){
-					return false;
-				}
-			}
-		} else if ((a == "string") || (a=="number")){
-			if (A != B){
-				return false;
-			}
-		} else if (a == "undefined"){
-			return true;
-		} else if (a =="boolean"){
-			return (A===B);
-		}
-		return true;
-	}
-
-	var self = this;
-	function buildEditor(HTML){
-		var Editor = document.createElement("DIV")
-		Editor.innerHTML = (HTML || "");
-		self.blotsFromDOM(Editor);
-		return Editor;
-	}
-	(function test_build_editor1(){
-		var HTML = "<p></p>"
-		var editor = buildEditor(HTML); 
-		if (editor.innerHTML != HTML) {
-			console.log("ERROR: test_build_editor \n"+editor.innerHTML+"\n"+HTML)
-		}
-	})();
-	(function test_build_editor2(){
-		var HTML = "<p></p>"
-		var editor = buildEditor(); /// not passing HTML
-		if (editor.innerHTML != "") { //// therefore, innerHTML is empty
-			console.log("ERROR: test_build_editor \n"+editor.innerHTML+"\n"+HTML)
-		}
-	})();
-
-	(function test_blots(){
-		var HTML = "<p>fjdks;ajfhgl<u>sk  hello World sd Barmitzvah </u><b><u>fas fas</u>dfa</b>sdf 1sdfdtd0010sff2f</p>";
-		var editor = buildEditor(HTML);
-		if (!editor[EDITOR].blots){
-			console.log("ERROR: test_blots(): Blots did not attach to editor. ", editor);
-		} else if (editor[EDITOR].blots.length != 6) {
-			console.log("ERROR: test_blots(): Improper number of blots. Expected 6, but received " + editor[EDITOR].blots.length, editor);
-		} else {
-			var rez = ["fjdks;ajfhgl","sk  hello World sd Barmitzvah ","fas fas","dfa","sdf 1sdfdtd0010sff2f","\n"];
-			editor[EDITOR].blots.map(function(blot, index){
-				if (blot.ins != rez[index]){
-					console.log("ERROR: test_blots(): Unexpected values. Expected "+blot.ins+ ", but received " + rez[index], editor);
-				}
-			})
-		}
-	})();
-
-	(function buildEditorFromDeltas(){
-		var editor = buildEditor();
-		self.connect(editor);
-		var deltas = [{'ins':"Hello World!"},{'ins':"\n"},{'ins':"This is bold text", attr:{'B':true} },{'ins':"This is italic text", attr:{'I':true} },{'ins':"This is underline text", attr:{'U':true} }, {'ins':'\n'}];
-		var expectedBlots = [{"ins":"Hello World!","node":{},"length":12,"type":1,"child":{},"position":0, 'index':0},{"ins":"\n","length":1,"type":4,"node":{},"position":1,'index':12},{"ins":"This is bold text","node":{},"length":17,"type":1,"attr":{"B":true},"child":{},"position":2, 'index':13},{"ins":"This is italic text","node":{},"length":19,"type":1,"attr":{"I":true},"child":{},"position":3, 'index':30},{"ins":"This is underline text","node":{},"length":22,"type":1,"attr":{"U":true},"child":{},"position":4, 'index':49},{"ins":"\n","length":1,"type":4,"node":{},"position":5, 'index':71}];
-		self.State.transform(editor, deltas);
-		if (editor.innerHTML !== "<p>Hello World!</p><p><b>This is bold text</b><i>This is italic text</i><u>This is underline text</u></p>"){
-			console.log('ERROR: ', arguments.callee.name, editor.innerHTML, deltas)
-		} else if (!check_equality(editor[EDITOR].blots, expectedBlots) ){
-			console.log('ERROR: ', arguments.callee.name, editor[EDITOR].blots, expectedBlots)
-		}
-
-	})();
-
-}).call(Shadow);
-
-*/

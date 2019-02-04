@@ -15,7 +15,7 @@ const {Project, Permission, User} = require("./store");
 
 const STATIC = {
     LOG:"L",
-    TIMESTAMP:"T",
+    TIMESTAMP:"t",
     DELTA:"D",
     MODEL:"M",
     FIELD:"F",
@@ -45,7 +45,7 @@ function getAuthorization(PrivilegeLevel){
                     req.session.passport.projects = {};
                 }
                 if (!req.session.passport.projects.hasOwnProperty(projectID)) {
-                    req.app.Models.Permission.findOne({
+/*                    req.app.Models.Permission.findOne({
                         where:{
                             UserId : userID,
                             ProjectId : projectID
@@ -54,8 +54,8 @@ function getAuthorization(PrivilegeLevel){
                         req.session.passport.projects[projectID] = permission.privilege;
                     }).catch( () => {
                         req.session.passport.projects[projectID] = 0;
-                    })
-/*                    const path = ProjectPath+projectID+"/permissions.json"
+                    })*/
+                  const path = ProjectPath+projectID+"/permissions.json"
                     fsPromises.readFile(path).then( (data) => {
                         const permissions = JSON.parse(data);
                         req.session.passport.projects[projectID] = permissions[userID] || 0; //
@@ -63,7 +63,7 @@ function getAuthorization(PrivilegeLevel){
                         console.log(err);
                         next(err);
                         return ;
-                    }); //// load Permissions JSON.*/
+                    }); //// load Permissions JSON.
                 }
             }
             if (req.session.passport.projects[projectID] < PrivilegeLevel) {
@@ -78,8 +78,14 @@ function getAuthorization(PrivilegeLevel){
 }
 
 async function counterLock(filePath){
-    const release = await lockFile.lock(filePath);
-    return fsPromises.readFile(filePath, "utf8")
+    return lockFile.lock(filePath)
+    .then( ()=> {
+        return fsPromises.readFile(filePath, "utf8")
+        .then( (file)=>{return file})
+        .catch((err)=>{
+            lockFile.unlock(filePath)
+        })
+    })
     .then( (counter) => {
         if (counter === ""){
             counter = "1";
@@ -88,11 +94,11 @@ async function counterLock(filePath){
     })
     .then( (counter) => {
         fs.writeFile(filePath, parseInt(counter)+1, ()=>{ }) /// increment counter for next cycle.
-        release();
+        lockFile.unlock(filePath)
         return counter;
     })
     .catch( (err) =>{
-        release();
+        lockFile.unlock(filePath)
     })
 }
 
@@ -129,21 +135,22 @@ Route.post('/delta/:projectID', jsonParser, async function  (req, res) {
     deltas[0][STATIC.USER] = userID;
     var newDeltas = [deltas];
     var newID;
+    var MODEL;
 
     var release = await lockFile.lock(path);
     if (deltas[0].hasOwnProperty(STATIC.MAKE)) { ///// MK Delta
-        const MODEL = deltas[0][STATIC.MODEL];
+        MODEL = deltas[0][STATIC.MAKE];
         const file = dir+"counter";
-        const ID = await counterLock(file).catch( (err) =>{ console.log(15, err)});
+        newID = await counterLock(file).catch( (err) =>{ res.send(500, "Error")});
 
-        deltas[0][STATIC.MAKE] = ID;
+        deltas[0][STATIC.MAKE] = deltas[0][STATIC.MAKE]+"."+newID;
         for (var PROPERTY in Model.Model[MODEL].properties){
             if (Model.Model[MODEL].properties[PROPERTY].required){
                 var newMetaDelta = {};
-                newMetaDelta[STATIC.MODEL] = MODEL;
-                newMetaDelta[STATIC.FIELD] = PROPERTY; //// Note Loopback "PROPERTY" == Lazu "FIELD"
+//                newMetaDelta[STATIC.MODEL] = MODEL;
+//                newMetaDelta[STATIC.FIELD] = PROPERTY; //// Note Loopback "PROPERTY" == Lazu "FIELD"
                 newMetaDelta[STATIC.USER] = userID;
-                newMetaDelta[STATIC.EDIT] = ID;
+                newMetaDelta[STATIC.EDIT] = MODEL + "." + newID + "." + PROPERTY;
                 //// create timestamp only after file lock.
                 var newDelta = Model.Model[MODEL].properties[PROPERTY].default;
                 newDeltas.push([newMetaDelta, newDelta])
@@ -178,7 +185,7 @@ Route.post('/delta/:projectID', jsonParser, async function  (req, res) {
             res.writeHead(200, {'Content-Type':'application/json','Connection':"close"});
             res.write('{"'+STATIC.TIMESTAMP+'":'+deltas[0][STATIC.TIMESTAMP]+',"'+STATIC.LOG+'":'+fileSizeInBytes);
             if (newID){ //// for "MK" operations.
-                res.write(',"'+STATIC.MAKE+'":'+newID);
+                res.write(',"'+STATIC.MAKE+'":"'+MODEL+"."+newID+'"');
             }
             newDeltas.splice(0,1);
             res.write(',"'+STATIC.DELTA+'":'+ JSON.stringify(oldDeltas.concat(newDeltas)) +'}'); /// return all deltas, except the delta sent in req.
@@ -202,9 +209,7 @@ Route.get("/", function (req, res){
 });
 
 Route.post("/", jsonParser, async function (req, res){
-    console.log('brewster')
     const post = req.body;
-//    res.send('hello'); return;
     req.app.Models.Project.create(req.app, req.session.passport.user, post)
 /*    req.app.Models.Project.create({title:post.title, description:post.description, UserId:req.session.passport.user})
     .then( (project) => {
