@@ -504,18 +504,19 @@ var ooxml = (function (){
         return {convert:convert}
     })();
 
-    function Embed (Delta, DocObject, ScopeObj){
+    var Embed = (function (Delta, DocObject, ScopeObj){
         function convert (){
 
         }
         return {
             convert:convert
         }
-    }
+    })();
 
     function convert (Deltas){
         //// Initial Integrity Check
         var checkLastDelta = Deltas.slice(-1)[0];
+        console.log('convert', Deltas.slice(-3), Deltas.length)
         if ( ! checkLastDelta.hasOwnProperty(ATTRIBUTE) ){
             checkLastDelta[ATTRIBUTE] = {};
         }
@@ -540,10 +541,11 @@ var ooxml = (function (){
         var RangePropertiesOffset = 0 ;
         var BlockPropertiesOffset = 0;
 
-        Deltas.reverse().map(function(DELTA){
+        Deltas.reverse().map(function(DELTA, index){
+            console.log('DELTA', DELTA, index)
             if (DELTA[INSERT] === "\n"){
 
-                if ( DELTA[ATTRIBUTE].hasOwnProperty("range") ) {
+                if (DELTA.hasOwnProperty(ATTRIBUTE) && DELTA[ATTRIBUTE].hasOwnProperty("range") ) {
 
                     if ( scopeObj["range"] !== DELTA[ATTRIBUTE]["range"] ) { //// only call Container() if we are changing range type.
                         /////////////// CONTAINER ///////////////////

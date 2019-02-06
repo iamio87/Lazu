@@ -18,6 +18,7 @@ var Shadow = (function(){
 		var INSERT = 'ins';
 		var DELETE = 'del';
 		var RETAIN = 'retain';
+		var SET = 'set';
 		var ATTRIBUTES = 'attr';
 		var EDITOR = 'shadow';
 		var RANGE = 'range';
@@ -438,7 +439,6 @@ var Shadow = (function(){
 					result.push(d);
 				}
 			}
-
 			normalizeDeltas(result);
 			return [result, undo];
 		}
@@ -526,9 +526,131 @@ var Shadow = (function(){
 		return {Attr:Attr, createDelta:createDelta, normalizeDeltas:normalizeDeltas, mergeDeltas:mergeDeltas, patchDeltas:patchDeltas, splitNewLineDeltas:splitNewLineDeltas, batchMerge:batchMerge }; //// Delta API
 	})();
 
+
+	var App = (function(){ ///// App() extends the DELTA format to include transformation made in the application context like "mk", "mv", "rm", and "set"
+		function getData(data, fieldName){ //// field names with periods indicate nested data structure.
+			return fieldName.split('.').reduce(function(acc, key){
+				return acc[key];
+			}, data);
+		}
+
+		function unpack(fieldName, verb) {
+			return fieldName.split(".").reduce(function(acc, key, index){
+				if (index === 0){
+					acc.model = key;
+				} else if (index === 1){
+					acc.id = key;
+				} else {
+					if (acc.field.length > 0){
+						acc.field = acc.field + "." + key;
+					} else {
+						acc.field = acc.field + key;
+					}
+				}
+				return acc;
+			}, {'model':'', 'id':'', 'field':'', 'verb':verb})
+		}
+
+		function getDeltaTarget(delta){
+			if (delta.hasOwnProperty(EDIT)){
+				return unpack(delta[EDIT], EDIT)
+			}
+			if (delta.hasOwnProperty(MAKE) ){
+				var ret = unpack(delta[MAKE], MAKE)
+				ret.ptg = delta['ptg']
+				ret.pos = delta['pos']
+				return ret;
+			}
+			if (delta.hasOwnProperty(MOVE)){
+				var ret = unpack(delta[MOVE], MOVE)
+				ret.ptg = delta['ptg']
+				ret.pos = delta['pos']
+				return ret;
+			}
+			if (delta.hasOwnProperty(REMOVE)){
+				return unpack(delta[REMOVE], REMOVE)
+			}
+			console.log('no property', delta)
+		}
+
+		function getDOM(obj){
+			var ID = obj.model + obj.field + obj.id;
+			return document.getElementById(ID);
+		}
+
+		function setID(DOM, obj){
+			DOM.id = obj.model + obj.field + obj.id;
+		}
+
+		function applyDelta(state, deltas){
+			var deltas1 = safeClone(state);
+			var deltas2 = safeClone(deltas);
+
+			var index = 0;
+		}
+
+		function consumeDelta (STATE, delta){
+			var target = getDeltaTarget(delta[0]);
+			if (target.verb === MAKE){
+				if (!STATE.hasOwnProperty(target.model)){
+					STATE[target.model]={};
+				}
+				STATE[target.model][target.id] = {'children':[], 'ptg':target.ptg};
+				STATE[target.model][delta[0]['ptg']].children.splice(delta[0]["pos"], 0, target.id)
+			} else if (target.verb === EDIT){
+				var Obj = target.field.split('.').reduce( function(acc, field, index, arr) {
+					if (!acc.hasOwnProperty(field)){
+						acc[field]={};
+						if (index+1===arr.length){
+							acc[field]=[];
+						}
+					}
+					if (index+1 === arr.length){
+						acc[field] = Delta.splitNewLineDeltas(Delta.batchMerge([acc[field], delta]) )
+					}
+					return acc[field]
+				}, STATE[target.model][target.id]);
+			} else if (target.verb === MOVE){
+				var Obj = target.field.split('.').reduce( function(acc, field) {
+					if (!acc.hasOwnProperty(field)){
+						acc[field]={};
+					}
+					return acc[field]
+				}, STATE[target.model][target.id]);
+				var Obj = STATE[target.model][target.id];
+				var oldParentID = STATE[target.model][target.id].ptg;
+				var oldParent = STATE[target.model][oldParentID];
+				var newParent = STATE[target.model][target.ptg];
+				oldParent.children.splice(oldParent.children.indexOf(target.id), 1)
+				newParent.children.splice(delta[0]["pos"], 0, target.id);
+				Obj.ptg = delta[0]['ptg'];
+			} else if (target.verb === REMOVE) {
+				var Obj = STATE[target.model][target.id];
+				var oldParentID = Obj.ptg;
+				delete Obj;
+				var oldParent = STATE[target.model][oldParentID]
+				oldParent.children.splice(oldParent.children.indexOf(target.id), 1);
+			}
+		}
+
+		function serializeNodes(DATA, nodeID, lvl){
+			lvl = lvl || 0;
+			var node = safeClone(DATA.Node[nodeID]);
+			if (node.hasOwnProperty('heading')){
+				node.heading.slice(-1)[0]["attr"] = {"range":"h"+lvl}
+			}
+			return node.children.reduce(function(acc, childID){
+				acc = acc.concat(serializeNodes(DATA, childID, lvl+1));
+				return acc;
+			},[node])
+		}
+
+		return {getDeltaTarget:getDeltaTarget, consumeDelta:consumeDelta, serializeNodes:serializeNodes}
+	})();
+
 	//// Check if Server or Client
 	if (typeof(exports) !== "undefined") {
-		return {Delta:Delta, STATIC:STATIC}
+		return {Delta:Delta, STATIC:STATIC, App:App}
 	} else {
 		// Disable resizing in Firefox
 		document.addEventListener("DOMContentLoaded", function () {
@@ -1829,7 +1951,9 @@ var Shadow = (function(){
 					lastInlineChild = Parchment.getChildInlineBlot(canvas[EDITOR].blots, lastInlineChild.position);
 				}
 				if (!newBlot.node.firstChild) {
+//					if (newBlot.node.nodeType !== 3){ /// make sure its not a text node
 					newBlot.node.appendChild( document.createElement('BR') ); //// if no child elements, add placeholder to make it display properly in DOM
+//					}
 				}
 //				if (!nextBlockBlot.node.firstChild) { //// unnessecary right now
 //					nextBlockBlot.node.appendChild( document.createElement('BR') ); //// if no child elements, add placeholder to make it display properly in DOM
@@ -3489,57 +3613,6 @@ var Shadow = (function(){
 		Range.setRangeByIndices(canvas, range.start+text.length, range.start+text.length);//// typical range reset after deletion
 	};
 
-	var App = (function(){ ///// App() extends the DELTA format to include transformation made in the application context like "mk", "mv", "rm", and "set"
-		function getData(data, fieldName){ //// field names with periods indicate nested data structure.
-			return fieldName.split('.').reduce(function(acc, key){
-				return acc[key];
-			}, data);
-		}
-
-		function unpack(fieldName, verb) {
-			return fieldName.split(".").reduce(function(acc, key, index){
-				if (index === 0){
-					acc.model = key;
-				} else if (index === 1){
-					acc.id = key;
-				} else {
-					if (acc.field.length > 0){
-						acc.field = acc.field + "." + key;
-					} else {
-						acc.field = acc.field + key;
-					}
-				}
-				return acc;
-			}, {'model':'', 'id':'', 'field':'', 'verb':verb})
-		}
-
-		function getDeltaTarget(delta){
-			if (delta.hasOwnProperty(EDIT)){
-				return unpack(delta[EDIT], EDIT)
-			}
-			if (delta.hasOwnProperty(MAKE) ){
-				return unpack(delta[MAKE], MAKE)
-			}
-			if (delta.hasOwnProperty(MOVE)){
-				return unpack(delta[MOVE], MOVE)
-			}
-			if (delta.hasOwnProperty(REMOVE)){
-				return unpack(delta[REMOVE], REMOVE)
-			}
-			console.log('no property', delta)
-		}
-
-		function getDOM(obj){
-			var ID = obj.model + obj.field + obj.id;
-			return document.getElementById(ID);
-		}
-
-		function setID(DOM, obj){
-			DOM.id = obj.model + obj.field + obj.id;
-		}
-		return {getDeltaTarget:getDeltaTarget}
-	})();
-
 	return {blotsFromDOM:Blot.blotsFromDOM,applyDeltas:Transform.Delta.applyDeltas, connect:Canvas.connect, Range:Range, Blot:Blot, Canvas:Canvas, Delta:Delta, namespace:EDITOR, Parchment:Parchment, State:State, Transform:Transform, STATIC:STATIC, App:App };
 
 })();
@@ -3547,4 +3620,5 @@ var Shadow = (function(){
 if (typeof(exports) !== "undefined"){
 	exports.default = Shadow.Delta; //// export Delta module for use on Server.
 	exports.static = Shadow.STATIC;
+	exports.App = Shadow.App;
 }

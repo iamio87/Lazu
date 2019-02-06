@@ -119,8 +119,9 @@ const App = (function(){
         http.createServer(app).listen(process.env.PORT, onListen);
 
         app.use(function(req, res, next){ /// debugging middleware.
+//            console.log('same');
             req.app = app; //// attach App to req for use of Models in Views.
-//            console.log("req: ", req.url, "\n", req.headers);
+//            console.log("req: ", req.url, "\n", req.headers, req.headers.cookie);
             next();
         });
         app.use("/api", function(req, res, next){
