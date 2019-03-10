@@ -63,11 +63,11 @@ var App = (function(){
 		return $.get("/api/project/"+Lawccess.context.project, {}).then(function(response, code){
 			Outline.createOutline("Project Title");
 			var BytePosition = response.splice(-1).pop()[App.STATIC.LOG];/// get byte position object & remove from deltas array.
-			console.log("bytepos", BytePosition);
+//			console.log("bytepos", BytePosition);
 			response.map(function(delta){
 					Shadow.App.consumeDelta(STATE, delta);
 				var target = Shadow.App.getDeltaTarget(delta[0]);
-				var model = target.model;//delta[0][App.STATIC.MODEL];
+				var model = target.model; //delta[0][App.STATIC.MODEL];
 				if (model === undefined){console.log("delta", delta)}
 				var undo = Modules[model].update(delta, target);
 				State.ops.push(delta);

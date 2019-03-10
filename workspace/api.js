@@ -10,7 +10,7 @@ fsPromises = require('fs').promises;
 Route.path = "project";
 const Model = require("../static/models.js");
 
-const {Project, Permission, User} = require("./store");
+const {Project, Permission, User} = require("./models");
 
 
 const STATIC = {
@@ -208,43 +208,37 @@ Route.get("/", function (req, res){
     res.send('clear blue sky');
 });
 
-Route.post("/", jsonParser, async function (req, res){
+Route.post("/create/", jsonParser, async function (req, res){
+    console.log('hello')
     const post = req.body;
-    req.app.Models.Project.create(req.app, req.session.passport.user, post)
-/*    req.app.Models.Project.create({title:post.title, description:post.description, UserId:req.session.passport.user})
-    .then( (project) => {
-        return project
+    const file = ProjectPath+"counter";
+    const ID = await counterLock(file).catch( (err) =>{ console.log(44, err)});
+    project = {id:ID, title:post.title, description:post.description, UserId:req.session.passport.user};
+    console.log('hi')
+    const dir = ProjectPath+project.id
+    fsPromises.mkdir(dir)
+    .then( () => {
+        const timestamp = Date.now();
+        //// note, we don't user the project.id for "mk" and "ed" attributes. we don't want unnecessary dependency. Numeric ID of project should not matter to internal state of project.
+        const init = `[{"M": "Project", "mk":true, "u":${req.session.passport.user}, "T":${timestamp}}],
+            [{"M": "Project", "F": "title", "ed":true, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.title}}],
+            [{"M": "Project", "F": "description", "ed":true, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.description}}],\n`
+        fs.writeFile(dir+"/log", "", ()=>{}); //// create Project log
+        fs.writeFile(dir+"/counter", "1", ()=>{}); //// create object counter
+        fs.writeFile(dir+"/meta", init, ()=>{});
+        fs.writeFile(dir+"/permissions.json", `{"${req.session.passport.user}":7}`, ()=>{}); //// create Permissions file, which is backup to DB. Not required.
     })
-    .catch( async () => { //// if no DB, use file system
-        const ID = await counterLock(file).catch( (err) =>{ console.log(44, err)});
-        project = {id:ID, title:post.title, description:post.description, UserId:req.session.passport.user};
-        return project;
-    })
-    .then( (project) => {
-        const dir = ProjectPath+project.id
-        fsPromises.mkdir(dir)
-        .then( () => {
-            const timestamp = Date.now();
-            //// note, we don't user the project.id for "mk" and "ed" attributes. we don't want unnecessary dependency. Numeric ID of project should not matter to internal state of project.
-            const init = `[{"M": "Project", "mk":true, "u":${req.session.passport.user}, "T":${timestamp}}],
-                [{"M": "Project", "F": "title", "ed":true, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.title}}],
-                [{"M": "Project", "F": "description", "ed":true, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.description}}],\n`
-            fs.writeFile(dir+"/log", init, ()=>{}); //// create Project log
-            fs.writeFile(dir+"/counter", "1", ()=>{}); //// create object counter
-            fs.writeFile(dir+"/permissions.json", `{${request.session.passport.user}:7}`, ()=>{}); //// create Permissions file, which is backup to DB. Not required.
-        })
-        return project;
-    })*/
-    .then( (project) => {
+    .then( () =>{
         res.status(200);
         res.send(project.id);
     })
-    .catch( () => {
+    .catch( (err) =>{
+        console.log(err);
         res.send('error');
     })
 });
 
-Route.delete("/:projectID", async function (req, res){
+Route.post("/delete/:projectID", async function (req, res){
     const post = req.body;
     Permission.read(req.app, req.params.projectID, req.sessions.passport.user)
     .then( (permission) => {

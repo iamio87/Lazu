@@ -35,7 +35,6 @@ const App = (function(){
     app.Models = Models
 
     async function init (modules){
-        console.log('hi')
         const FORCE = true;
         modules.map( (moduleName) => {
             ///// handle model sync
@@ -65,14 +64,20 @@ const App = (function(){
             try {
                 const routes = require("./"+moduleName+"/routes");
                 app.use("/"+moduleName+"/", routes);
-            } catch (e) {  }
+                console.log(moduleName, routes);
+            } catch (e) {
+                console.log(e);
+            }
 
             //// apply routing specific for APIs.
             try {
                 const routes = require("./"+moduleName+"/api");
                 const apiRoute = routes.path || moduleName;
                 app.use("/api/"+apiRoute+"/", routes);  
-            } catch (e) {  }
+                console.log(moduleName, apiRoute)
+            } catch (e) { 
+                console.log('Error loading API for ', moduleName)
+             }
         });
 
         const ModelNames = Object.keys(Models);
@@ -94,18 +99,38 @@ const App = (function(){
         ///// Use passport-local-sequelize to glue User model to passport authentication.
         var User = Models["User"];
         passportLocalSequelize.attachToUser(User);
-        passport.use(User.createStrategy());
+//        passport.use(User.createStrategy());
+        passport.use(new LocalStrategy(
+            (username, password, done) => {
+                var User = require('./auth/store').User;
+                return User.authenticate(username, password)
+                .then( (auth) =>{
+                    if (auth !== false) {
+                        return done(null, auth);
+                    } else {
+                        return done(null, false);
+                    }
+                })
+            }
+        ))
         passport.serializeUser(function(user, done) {
             done(null, user.id);
         });
+
         passport.deserializeUser(function(id, done) {
-            var query = User.findOne({where:{"id":id}});
-            query.then((user)=> {
-                done(null, user);
-            });
-            query.catch((err)=> {
-                done(err);
-            });
+//            console.log("DU", id, done)
+            var User = require('./auth/store').User;
+            try {
+                var profile = User.get(id);
+                done(null, profile)
+/*                .catch( (err) =>{
+                    console.log('DESERIALIZE ERROR1', err);
+                    done(err, null);
+                })*/
+            } catch(e){
+                console.log('DESERIALIZE ERROR', e)
+                done(e, null)
+            }
         });
 
         process.env.PORT = '8080';
@@ -119,13 +144,12 @@ const App = (function(){
         http.createServer(app).listen(process.env.PORT, onListen);
 
         app.use(function(req, res, next){ /// debugging middleware.
-//            console.log('same');
             req.app = app; //// attach App to req for use of Models in Views.
-//            console.log("req: ", req.url, "\n", req.headers, req.headers.cookie);
+//            console.log(req.session, req.sessionID);
             next();
         });
         app.use("/api", function(req, res, next){
-            console.log(req.path);
+            //console.log(req.path);
             next()
         })
         app.use('/static', express.static('./static') );

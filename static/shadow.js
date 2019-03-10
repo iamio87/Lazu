@@ -1562,7 +1562,7 @@ var Shadow = (function(){
 				var counter = 0;
 				for (var i = 0; i < canvas[EDITOR].blots.length; i++) { //// INSERT DELTAS
 					counter ++
-					if (counter == 180){console.log(canvas[EDITOR].blots, deltas);die;}
+//					if (counter == 180){console.log(canvas[EDITOR].blots, deltas);die;}
 					var blot = canvas[EDITOR].blots[i];
 					blot.position = i;
 					if (i > 0) {
@@ -1946,7 +1946,7 @@ var Shadow = (function(){
 				var counter = 0
 				while (lastInlineChild !== null) {
 					counter++;
-					if (counter == 200){die;}
+//					if (counter == 200){die;}
 					newBlot.node.insertBefore(lastInlineChild.child, newBlot.node.firstChild);
 					lastInlineChild = Parchment.getChildInlineBlot(canvas[EDITOR].blots, lastInlineChild.position);
 				}
@@ -3539,7 +3539,6 @@ var Shadow = (function(){
 			range.isRange = (start !== end);
 			range.startBlot = getBlotByIndex(canvas, start);
 			range.endBlot = getBlotByIndex(canvas, end);
-
 			range.isReversed = false; //// per the spec, it is impossible to set a range that is reversed. https://developer.mozilla.org/en-US/docs/Web/API/Range/setStart
 			updateRangeSelection(canvas);
 			getInlineRangeFormat(canvas);
@@ -3619,6 +3618,7 @@ var Shadow = (function(){
 
 if (typeof(exports) !== "undefined"){
 	exports.default = Shadow.Delta; //// export Delta module for use on Server.
+	exports.Delta = Shadow.Delta;
 	exports.static = Shadow.STATIC;
 	exports.App = Shadow.App;
 }
