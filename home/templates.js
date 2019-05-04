@@ -1,0 +1,56 @@
+exports.homePage = (projects) => {return  `
+<meta charset="UTF-8">
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="/static/jquery-1.10.2.js"></script>
+<script>
+  ///// change default from x-www-forms to application/json for proper parsing on server.
+$.ajaxSetup({
+  contentType: "application/json; charset=utf-8"
+});
+</script>
+<script type="text/javascript" src="/static/jquery-ui-1.10.3.js"></script><!-- needed for nested sortable -->
+<script type="text/javascript" src="/static/jquery.ui.touch-punch.js"></script><!-- apparently helps with mobile? -->
+<script type="text/javascript" src="/static/nested-sortable.2-alpha.js"></script><!-- This makes our outline view possible. -->
+
+<script src="/static/post.js"></script><!-- utility to accomodate CSRF in POST requests -->
+</head>
+<body>
+${projects.map(function(project) {
+    return `<div><p><a href="/workspace/${project.id}">${project.title}</a></p><p>${project.description}</p></div>`
+})}
+<input id="title"/><input id="description"/>
+<span id="newProject">Create Project</span>
+<script>
+document.getElementById("newProject").addEventListener("click", function(e){
+    console.log(this);
+    var body = {
+        title:document.getElementById("title").value,
+        description:document.getElementById("title").value
+    }
+    $.post('/api/project/', JSON.stringify(body), function(data){
+        console.log(data);
+    });
+/*    const myRequest = new Request('/api/project/', {method: 'POST', body: body});
+    fetch(myRequest)
+    .then(response => {
+        if (response.status === 200) {
+        return response.json();
+        } else {
+        throw new Error('Something went wrong on api server!');
+        }
+    })
+    .then(response => {
+        console.debug(response);
+        // ...
+    }).catch(error => {
+        console.error(error);
+    });*/
+})
+</script>
+</body>
+</html>
+`}
+
+ 

@@ -1,0 +1,22 @@
+{
+    "MODEL":"M",
+    "FIELD":"F",
+    "USER":"U",
+    "TIMESTAMP":"T",
+    "LOG":"L",
+    "VALIDATOR":"V",
+    "DELTA":"D",
+    "ID":"ID",
+    "EDIT":"ed",
+    "MAKE":"mk",
+    "MOVE":"mv",
+    "REMOVE":"rm",
+    "PARENT":"ptg",
+    "POSITION":"pos",
+    "INDEX":"pos",
+    "SET":"set",
+    "VALUE":"val",
+    "INSERT":"ins",
+    "DELETE":"del",
+    "RETAIN":"ret"
+}
