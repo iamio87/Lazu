@@ -523,16 +523,17 @@ var Shadow = (function(){
 			return batchMerge(Deltas.reverse());
 		}
 
+
 		return {Attr:Attr, createDelta:createDelta, normalizeDeltas:normalizeDeltas, mergeDeltas:mergeDeltas, patchDeltas:patchDeltas, splitNewLineDeltas:splitNewLineDeltas, batchMerge:batchMerge }; //// Delta API
 	})();
 
 
 	var App = (function(){ ///// App() extends the DELTA format to include transformation made in the application context like "mk", "mv", "rm", and "set"
-		function getData(data, fieldName){ //// field names with periods indicate nested data structure.
+		/*function getData(data, fieldName){ //// field names with periods indicate nested data structure.
 			return fieldName.split('.').reduce(function(acc, key){
 				return acc[key];
 			}, data);
-		}
+		}*/
 
 		function unpack(fieldName, verb) {
 			return fieldName.split(".").reduce(function(acc, key, index){
@@ -551,14 +552,16 @@ var Shadow = (function(){
 			}, {'model':'', 'id':'', 'field':'', 'verb':verb})
 		}
 
-		function getDeltaTarget(delta){
+		function getDeltaTarget (delta){
 			if (delta.hasOwnProperty(EDIT)){
 				return unpack(delta[EDIT], EDIT)
 			}
 			if (delta.hasOwnProperty(MAKE) ){
 				var ret = unpack(delta[MAKE], MAKE)
-				ret.ptg = delta['ptg']
-				ret.pos = delta['pos']
+				if (delta.hasOwnProperty('ptg') ){
+					ret.ptg = delta['ptg']
+					ret.pos = delta['pos']
+				}
 				return ret;
 			}
 			if (delta.hasOwnProperty(MOVE)){
@@ -573,20 +576,30 @@ var Shadow = (function(){
 			console.log('no property', delta)
 		}
 
-		function getDOM(obj){
+/*		function getDOM(obj){
 			var ID = obj.model + obj.field + obj.id;
 			return document.getElementById(ID);
 		}
 
 		function setID(DOM, obj){
 			DOM.id = obj.model + obj.field + obj.id;
-		}
+		}*/
 
-		function applyDelta(state, deltas){
-			var deltas1 = safeClone(state);
-			var deltas2 = safeClone(deltas);
-
+		function applyDelta (string, deltas){
 			var index = 0;
+			return deltas.reduce( function(acc, delta) {
+				if (delta.hasOwnProperty(INSERT)){
+					acc = acc.slice(0, index) + delta[INSERT] + acc.slice(index);
+					index += delta[INSERT].length;
+				} else if (delta.hasOwnProperty(RETAIN)){
+					index += delta[RETAIN];
+				} else if (delta.hasOwnProperty(DELETE) ){
+					acc = acc.slice(0, index) + acc.slice(index+delta[DELETE]);
+				} else if (delta.hasOwnProperty(SET)) {
+					acc = delta[SET];
+				}
+				return acc;
+			}, string);
 		}
 
 		function consumeDelta (STATE, delta){
@@ -595,22 +608,25 @@ var Shadow = (function(){
 				if (!STATE.hasOwnProperty(target.model)){
 					STATE[target.model]={};
 				}
-				STATE[target.model][target.id] = {'children':[], 'ptg':target.ptg};
-				STATE[target.model][delta[0]['ptg']].children.splice(delta[0]["pos"], 0, target.id)
-			} else if (target.verb === EDIT){
-				var Obj = target.field.split('.').reduce( function(acc, field, index, arr) {
+				if (target.ptg){
+					STATE[target.model][target.id] = {'children':[], 'ptg':target.ptg};
+					STATE[target.model][delta[0]['ptg']].children.splice(delta[0]["pos"], 0, target.id)
+				}
+			} else if (target.verb === EDIT) {
+				var Obj = delta[0][target.verb].split('.').reduce( function(acc, field, index, arr) {
 					if (!acc.hasOwnProperty(field)){
 						acc[field]={};
 						if (index+1===arr.length){
-							acc[field]=[];
+							acc[field]="";
 						}
 					}
 					if (index+1 === arr.length){
-						acc[field] = Delta.splitNewLineDeltas(Delta.batchMerge([acc[field], delta]) )
+						acc[field] = applyDelta(acc[field], delta);
+						console.log('green', acc[field]);
 					}
 					return acc[field]
-				}, STATE[target.model][target.id]);
-			} else if (target.verb === MOVE){
+				}, STATE);
+			} else if (target.verb === MOVE) {
 				var Obj = target.field.split('.').reduce( function(acc, field) {
 					if (!acc.hasOwnProperty(field)){
 						acc[field]={};
@@ -645,7 +661,15 @@ var Shadow = (function(){
 			},[node])
 		}
 
-		return {getDeltaTarget:getDeltaTarget, consumeDelta:consumeDelta, serializeNodes:serializeNodes}
+		function applyDeltaToJSON(state, deltas){
+			deltas.map((delta)=>{
+				consumeDelta(state, delta)
+			});
+			return state;
+
+		}
+
+		return {getDeltaTarget:getDeltaTarget, serializeNodes:serializeNodes, applyDeltaToJSON:applyDeltaToJSON}
 	})();
 
 	//// Check if Server or Client

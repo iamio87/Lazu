@@ -7,13 +7,15 @@ settings = require("../settings"),
 ProjectPath = settings.ProjectPath,
 projectCounter = ProjectPath+"counter",
 fsPromises = require('fs').promises;
-Route.path = "project";
+Route.path = "project",
+Delta = require("./delta"),
+STATIC = Delta.static;
 const Model = require("../static/models.js");
 
 const {Project, Permission, User} = require("./models");
 
 
-const STATIC = {
+/*const STATIC = {
     LOG:"L",
     TIMESTAMP:"t",
     DELTA:"D",
@@ -22,7 +24,7 @@ const STATIC = {
     MAKE:"mk",
     EDIT:"ed",
     USER:"u"
-}
+}*/
 //var LOG = "L"; //// TODO: reference Delta.js
 
 function getAuthorization(PrivilegeLevel){
@@ -55,9 +57,11 @@ function getAuthorization(PrivilegeLevel){
                     }).catch( () => {
                         req.session.passport.projects[projectID] = 0;
                     })*/
-                  const path = ProjectPath+projectID+"/permissions.json"
+                    const path = ProjectPath+projectID+"/meta"
+                    
                     fsPromises.readFile(path).then( (data) => {
-                        const permissions = JSON.parse(data);
+//                        const permissions = JSON.parse(data);
+                        const permissions = Delta.App.applyDeltaToJSON(JSON.parse('['+data+']'))["Privilege"];
                         req.session.passport.projects[projectID] = permissions[userID] || 0; //
                     }).catch( (err) => {
                         console.log(err);
@@ -220,9 +224,12 @@ Route.post("/create/", jsonParser, async function (req, res){
     .then( () => {
         const timestamp = Date.now();
         //// note, we don't user the project.id for "mk" and "ed" attributes. we don't want unnecessary dependency. Numeric ID of project should not matter to internal state of project.
-        const init = `[{"M": "Project", "mk":true, "u":${req.session.passport.user}, "T":${timestamp}}],
-            [{"M": "Project", "F": "title", "ed":true, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.title}}],
-            [{"M": "Project", "F": "description", "ed":true, "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.description}}],\n`
+        const init = `
+            [{"mk":"Project.${ID}", "u":${req.session.passport.user}, "T":${timestamp}}],
+            [{"ed":"Project.${ID}.title", "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.title}}],
+            [{"ed": "Project.${ID}.description", "u": ${req.session.passport.user}, "T": ${timestamp}}, {"ins": ${project.description}}],
+            [{"mk":"Privilege.${req.session.passport.user}", "u":${req.session.passport.user}, "T":${timestamp}}],
+            [{"ed":"Privilege.${req.session.passport.user}", "u":${req.session.passport.user}, "T":${timestamp}},{"set":7}]\n`
         fs.writeFile(dir+"/log", "", ()=>{}); //// create Project log
         fs.writeFile(dir+"/counter", "1", ()=>{}); //// create object counter
         fs.writeFile(dir+"/meta", init, ()=>{});
