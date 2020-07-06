@@ -1,5 +1,5 @@
 var Sequelize = require('sequelize');
-var settings = require(".settings");
+//var settings = require(".settings");
 var fsPromises = require("fs").promises;
 const settings = require("../settings");
 const DB = settings.Database;
@@ -11,7 +11,7 @@ const Query = (function(){
         
     }
     return {};
-}))();
+})();
 
 
 function createUser(userObj, password){
@@ -33,8 +33,7 @@ async function createProject(req){
 
 }
 
-async function 
+    
+module.exports = DB;
 
-
-module.exports = db;
 //module.exports = sequelize;
