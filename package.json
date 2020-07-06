@@ -10,15 +10,17 @@
     "express-promise-router": "^3.0.3",
     "express-session": "^1.15.6",
     "jszip": "^3.1.5",
+    "knex": "^0.17.6",
     "mongoose": "^5.3.12",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
-    "passport-local-sequelize": "^0.8.0",
+    "passport-local-sequelize": "^0.9.0",
     "pg": "^7.6.1",
     "pg-hstore": "^2.3.2",
     "proper-lockfile": "^3.0.2",
     "retry": "^0.12.0",
-    "sequelize": "^4.41.2"
+    "sequelize": "^4.41.2",
+    "sqlite3": "^4.0.9"
   },
   "devDependencies": {},
   "scripts": {

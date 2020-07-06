@@ -1,6 +1,6 @@
-const settings = require("./settings");
+var settings = require("./settings");
 try {
-    const settings = require("./local_settings")
+    settings = require("./local_settings")
 } catch(e){}
 
 const App = (function(){
@@ -76,7 +76,7 @@ const App = (function(){
                 app.use("/api/"+apiRoute+"/", routes);  
                 console.log(moduleName, apiRoute)
             } catch (e) { 
-                console.log('Error loading API for ', moduleName)
+                console.log('Error loading API for ', moduleName, e)
              }
         });
 

@@ -2,7 +2,7 @@
 var MODELS;
 (function(){
     if (exports){ //// SERVER
-        var Delta = require("./delta.js").default;
+        var Delta = require("../delta").default;
         var STATIC = require("./static-vars.json");
     } else { //// CLIENT
         var Delta = Shadow.Delta;

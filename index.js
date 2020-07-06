@@ -24,9 +24,9 @@
 	bodyParser = require('body-parser');
 	const Model = require("./static/models.js");
 	const STATIC = require("./static/static-vars.json"); //// Some definitions to standardize Delta operations
-	const DB = require("./db/index");
-	const Delta = require("./static/delta.js").default;
-	console.log('db', DB);
+//	const DB = require("./db/index");
+//	const Delta = require("./static/delta.js").default;
+//	console.log('db', DB);
 
     // If deployed in our demo site, we store the sessions using Redis.
     // Locally, we store the sessions in memory.
@@ -49,18 +49,17 @@
     app.get('/auth/logout', routes.auth.getLogout);
 
     // Register our SKY API routes.
-    app.get('/api/constituents/:constituentId', routes.auth.checkSession, routes.api.getConstituent);
+/*    app.get('/api/constituents/:constituentId', routes.auth.checkSession, routes.api.getConstituent);
     app.get('/api/gifts/:giftId', routes.auth.checkSession, routes.api.getGift);*/
 
     // Lazu-specific routes
     app.use('/static', express.static('./static') )
     app.get('/workspace/:projectID', function(req, res){
-//x		console.log(11, req.session);
 		req.session["user"] = 1;
 //		DB.User.findByPk(req.params['projectID']).then((rez)=>{
 //			console.log(66, rez, Object.keys(rez), rez["dataValues"], rez.save);
 //		});
-		const stream = fs.createReadStream(__dirname+'templates/workspace.html');
+		const stream = fs.createReadStream(__dirname+'/workspace/templates/workspace.html');
 		res.writeHead(200, {'Content-Type': 'text/html'} )
 		stream.pipe(res);
     });
@@ -98,7 +97,6 @@
 			const dir = 'projects/'+req.params['projectID']+'/'
 			const path = 'projects/'+req.params['projectID']+'/log';
 			const bytePosition = Number(post[STATIC.LOG]);
-//			const validator = post[STATIC.VALIDATOR];
 			var deltas = post[STATIC.DELTA];
 			const userID = 1; // req.session.user /// TODO
 			deltas[0][STATIC.USER] = userID;
@@ -159,7 +157,7 @@
 				stream.on('close', () => {
 					//// TODO: merge Deltas
 					//if (oldDeltas.length){
-						oldDeltas = JSON.parse("["+oldDeltas+"]");
+					oldDeltas = JSON.parse("["+oldDeltas+"]");
 //						Delta.patchDeltas(oldDeltas, newDeltas); //// TODO: patchDeltas assumes same MODEL & FIELD instance.
 					//}
 

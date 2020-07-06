@@ -45,7 +45,6 @@ var Source = (function(){
         return {applyDelta:applyDelta, getVal:getVal}
     })();
 
-
     var List = (function(){
 
         return {}

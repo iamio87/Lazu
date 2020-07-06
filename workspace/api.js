@@ -8,7 +8,7 @@ ProjectPath = settings.ProjectPath,
 projectCounter = ProjectPath+"counter",
 fsPromises = require('fs').promises;
 Route.path = "project",
-Delta = require("./delta"),
+Delta = require("../delta"),
 STATIC = Delta.static;
 const Model = require("../static/models.js");
 
@@ -57,7 +57,7 @@ function getAuthorization(PrivilegeLevel){
                     }).catch( () => {
                         req.session.passport.projects[projectID] = 0;
                     })*/
-                    const path = ProjectPath+projectID+"/meta"
+                    const path = ProjectPath+projectID+"/log"
                     
                     fsPromises.readFile(path).then( (data) => {
 //                        const permissions = JSON.parse(data);
