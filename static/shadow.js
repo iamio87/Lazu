@@ -31,14 +31,6 @@ var Shadow = (function(){
 	var PARCHMENT = "blots";
 	var NUMBERING = "numbering";
 
-
-	var STATIC = {
-		BOLD:'B',
-		ITALIC:'I',
-		UNDERLINE:'U',
-		RANGE:'range',
-	};
-
 	/* Shadow Editor Core */
 	//// Editor
 		//// Core
@@ -116,7 +108,12 @@ var Shadow = (function(){
 		"VALUE":"val",
 		"INSERT":"ins",
 		"DELETE":"del",
-		"RETAIN":"ret"
+		"RETAIN":"ret",
+
+		BOLD:'B',
+		ITALIC:'I',
+		UNDERLINE:'U',
+		RANGE:'range',
 	};
 
 	var Delta = (function(){ 
@@ -3015,6 +3012,7 @@ var Shadow = (function(){
 
 			},
 			'bold': function (canvas, event, range) { //// TODO: Has experimental STATIC support.
+				console.log('blue', STATIC);
 				if (range.isRange){
 					if (range.inlineFormat.hasOwnProperty(STATIC.BOLD) ){
 						var deltas = [
@@ -3640,9 +3638,11 @@ var Shadow = (function(){
 
 })();
 
+
 if (typeof(exports) !== "undefined"){
 	exports.default = Shadow.Delta; //// export Delta module for use on Server.
 	exports.Delta = Shadow.Delta;
 	exports.static = Shadow.STATIC;
 	exports.App = Shadow.App;
 }
+

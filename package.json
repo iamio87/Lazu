@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "bcrypt": "^3.0.2",
-    "express": "^4.16.4",
+    "express": "^4.17.1",
     "express-es6-template-engine": "^2.1.6",
     "express-promise-router": "^3.0.3",
     "express-session": "^1.15.6",
@@ -19,8 +19,7 @@
     "pg-hstore": "^2.3.2",
     "proper-lockfile": "^3.0.2",
     "retry": "^0.12.0",
-    "sequelize": "^4.41.2",
-    "sqlite3": "^4.0.9"
+    "sequelize": "^4.44.3"
   },
   "devDependencies": {},
   "scripts": {
