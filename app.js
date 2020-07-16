@@ -2,6 +2,7 @@ var settings = require("./settings");
 try {
     settings = require("./local_settings")
 } catch(e){}
+const DEBUG = true;
 
 const App = (function(){
    
@@ -102,6 +103,9 @@ const App = (function(){
 //        passport.use(User.createStrategy());
         passport.use(new LocalStrategy(
             (username, password, done) => {
+                if (DEBUG){
+                    return done(null, {'username':username,'id':1});
+                }
                 var User = require('./auth/store').User;
                 return User.authenticate(username, password)
                 .then( (auth) =>{
@@ -113,7 +117,10 @@ const App = (function(){
                 })
             }
         ))
+
+        
         passport.serializeUser(function(user, done) {
+            console.log('serialize', user);
             done(null, user.id);
         });
 
