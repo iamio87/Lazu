@@ -600,7 +600,7 @@ var Shadow = (function(){
 		}
 
 		function consumeDelta (STATE, delta){
-			var target = getDeltaTarget(delta[0]);
+			var target = getDeltaTarget(delta);
 			if (target.verb === MAKE){
 				if (!STATE.hasOwnProperty(target.model)){
 					STATE[target.model]={};
