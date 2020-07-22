@@ -60,7 +60,7 @@ var App = (function(){
 		}
 	}};
 	function init() {
-		return $.get("/api/project/"+Lawccess.context.project, {}).then(function(response, code){
+		return $.get("/api/project/"+window.location.pathname.split("/")[2], {}).then(function(response, code){
 			Outline.createOutline("Project Title");
 			var BytePosition = response.splice(-1).pop()[App.STATIC.LOG];/// get byte position object & remove from deltas array.
 			response.map(function(delta){

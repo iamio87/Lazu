@@ -12,7 +12,7 @@ section#outline-container input {
 .heading_option_button {list-style:none; display:block;float:right;}
 .heading_option_button span {float:right;height:1em;}
 .heading_option_list {list-style:none; position:relative; top:1.3em;background-color:white;z-index:2;}
-.outline-head .heading_option_list {display:none;}
+.heading_option_root {list-style:none; position:relative; top:1.3em;background-color:white;z-index:2; display:none;}
 .outline-element-options {display:inline-block;float:right; padding-left:2px; position:relative;bottom:3px;margin-right:3px;max-height:1em;}
 .outline-element-options li {padding-left:2px;}
 .outline-element-options li ul {padding-left:2px;}

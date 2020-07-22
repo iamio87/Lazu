@@ -1,4 +1,4 @@
-    .outline-element div div.content div.citations_list {
+.outline-element div div.content div.citations_list {
 	float:left;
 	border: 1px solid black;
 	width:30%;
@@ -7,10 +7,10 @@
 	background-color:none;
 	max-height:300px;
 	overflow:auto;
-    }
+}
 
 
-    .outline-element div div.content.citation_pane div.description {
+.outline-element div div.content.citation_pane div.description {
 	float:left;
 	width:68%;
-    }
+}

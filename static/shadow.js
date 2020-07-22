@@ -14,6 +14,7 @@ var Shadow = (function(){
 		var MOVE = "mv";
 		var REMOVE = "rm";
 		var MAKE = "mk";
+		var VALUE = "val";
 	} else { //// profile === 'lazu'
 		var INSERT = 'ins';
 		var DELETE = 'del';
@@ -26,6 +27,7 @@ var Shadow = (function(){
 		var MOVE = "mv";
 		var REMOVE = "rm";
 		var MAKE = "mk";
+		var VALUE = "val";
 	}
 
 	var PARCHMENT = "blots";
@@ -582,7 +584,7 @@ var Shadow = (function(){
 			DOM.id = obj.model + obj.field + obj.id;
 		}*/
 
-		function applyDelta (string, deltas){
+		function applyDeltaToString (string, deltas){
 			var index = 0;
 			return deltas.reduce( function(acc, delta) {
 				if (delta.hasOwnProperty(INSERT)){
@@ -599,57 +601,78 @@ var Shadow = (function(){
 			}, string);
 		}
 
-		function consumeDelta (STATE, delta){
-			var target = getDeltaTarget(delta);
+		function consumeDelta (STATE, delta, preserveSegmentAttributes){
+			var target = getDeltaTarget(delta[0]);
 			if (target.verb === MAKE){
 				if (!STATE.hasOwnProperty(target.model)){
 					STATE[target.model]={};
 				}
-				if (target.ptg){
+				if (target.hasOwnProperty("ptg")){
 					STATE[target.model][target.id] = {'children':[], 'ptg':target.ptg};
-					STATE[target.model][delta[0]['ptg']].children.splice(delta[0]["pos"], 0, target.id)
+					var ptgModel, ptgNumericID;
+					// console.log(target["ptg"], target);
+					[ptgModel, ptgNumericID] = target["ptg"].split(".");
+					STATE[ptgModel][ptgNumericID].children.splice(delta[0]["pos"], 0, target.id)
 				}
 			} else if (target.verb === EDIT) {
-				var Obj = delta[0][target.verb].split('.').reduce( function(acc, field, index, arr) {
-					if (!acc.hasOwnProperty(field)){
-						acc[field]={};
-						if (index+1===arr.length){
-							acc[field]="";
+				if (preserveSegmentAttributes){
+					if (!STATE[target.model][target.id].hasOwnProperty(target.field)){
+						STATE[target.model][target.id][target.field] = [];
+					}
+					// console.log(11, delta, STATE[target.model][target.id][target.field]);
+					var Obj = Delta.mergeDeltas(STATE[target.model][target.id][target.field], delta)[0];
+					// console.log(12, STATE[target.model][target.id][target.field], Obj)
+					STATE[target.model][target.id][target.field] = Obj;
+				} else {
+					var Obj = delta[0][target.verb].split('.').reduce( function(acc, field, index, arr) {
+						if (!acc.hasOwnProperty(field)){
+							if (index+1===arr.length){ ///// convert deltas to string to make searchable
+								acc[field]="";
+							}
 						}
-					}
-					if (index+1 === arr.length){
-						acc[field] = applyDelta(acc[field], delta);
-						console.log('green', acc[field]);
-					}
-					return acc[field]
-				}, STATE);
+						if (index+1 === arr.length){
+							acc[field] = applyDeltaToString(acc[field], delta);
+						}
+						return acc[field]
+					}, STATE);
+				}
 			} else if (target.verb === MOVE) {
-				var Obj = target.field.split('.').reduce( function(acc, field) {
+/*				var Obj = target.field.split('.').reduce( function(acc, field) {
 					if (!acc.hasOwnProperty(field)){
 						acc[field]={};
 					}
 					return acc[field]
-				}, STATE[target.model][target.id]);
+				}, STATE[target.model][target.id]);*/
 				var Obj = STATE[target.model][target.id];
+				var parentTarget = unpack(target.ptg, target.verb);
+				var oldParentTarget = unpack(STATE[target.model][target.id].ptg);
 				var oldParentID = STATE[target.model][target.id].ptg;
-				var oldParent = STATE[target.model][oldParentID];
-				var newParent = STATE[target.model][target.ptg];
+				var oldParentModel, OldParentNumericID, OldParentField
+				[oldParentModel, OldParentNumericID, OldParentField] = oldParentID.split(".");
+				var oldParent = STATE[oldParentModel][OldParentNumericID];
+				var newParent = STATE[parentTarget.model][parentTarget.id];
+				// console.log(11, oldParentID, target.id, STATE[target.model], parentTarget);
 				oldParent.children.splice(oldParent.children.indexOf(target.id), 1)
+				// console.log(parentTarget.id, newParent)
 				newParent.children.splice(delta[0]["pos"], 0, target.id);
 				Obj.ptg = delta[0]['ptg'];
 			} else if (target.verb === REMOVE) {
 				var Obj = STATE[target.model][target.id];
 				var oldParentID = Obj.ptg;
+				// console.log("REMOVE FROM STATE", target.id, target.model, STATE, Obj.ptg, Obj)
 				delete Obj;
-				var oldParent = STATE[target.model][oldParentID]
-				oldParent.children.splice(oldParent.children.indexOf(target.id), 1);
+				if (STATE[target.model].hasOwnProperty(oldParent)){
+					var oldParent = STATE[target.model][oldParentID]
+					oldParent.children.splice(oldParent.children.indexOf(target.id), 1);
+				}
 			}
 		}
 
-		function serializeNodes(DATA, nodeID, lvl){
+		function serializeNodes(DATA, nodeID, lvl){ //// Basically, we are merging all of the separate documents from each subfield into 1 complete document - used for Print()
 			lvl = lvl || 0;
 			var node = safeClone(DATA.Node[nodeID]);
-			if (node.hasOwnProperty('heading')){
+			// console.log(node);
+			if (node.hasOwnProperty('heading') && (node["heading"].length > 1) ){
 				node.heading.slice(-1)[0]["attr"] = {"range":"h"+lvl}
 			}
 			return node.children.reduce(function(acc, childID){
@@ -659,14 +682,15 @@ var Shadow = (function(){
 		}
 
 		function applyDeltaToJSON(state, deltas){
+			// console.log(deltas);
 			deltas.map((delta)=>{
-				consumeDelta(state, delta)
+				//
 			});
 			return state;
 
 		}
 
-		return {getDeltaTarget:getDeltaTarget, serializeNodes:serializeNodes, applyDeltaToJSON:applyDeltaToJSON}
+		return {getDeltaTarget:getDeltaTarget, serializeNodes:serializeNodes, applyDeltaToJSON:applyDeltaToJSON, consumeDelta:consumeDelta, unpack:unpack, applyDeltaToString:applyDeltaToString}
 	})();
 
 	//// Check if Server or Client
@@ -1474,6 +1498,7 @@ var Shadow = (function(){
 							canvas.appendChild(newBlot.node); /// for text paragraphs
 						}
 						newBlot.node.appendChild(document.createElement("BR")); //// bug fix for test Deltas30. Bootstrapped blocks did not have <br> placeholder.
+						// console.log(111, delta);
 						return;
 					}
 					if (blot.type >= Blot.types.BLOCK) { //// 2.1. insert into BLOCK or CONTAINER
@@ -1581,6 +1606,21 @@ var Shadow = (function(){
 				var history = [];
 				var deltaIndex = 0; 
 				var counter = 0;
+				
+				if ( deltas[0].hasOwnProperty(SET) ) { ///// Handle SET transformations - which are basically a DELETE and INSERT.
+					if (canvas[EDITOR].blots.length > 1){
+						var lastBlot = canvas[EDITOR].blots[ canvas[EDITOR].blots -1 ];
+						var documentLength = lastBlot.index + lastBlot[INSERT].length;
+						var deleteDelta = Delta.createDelta(DELETE, documentLength);
+						deltas.splice(1, 0, deleteDelta);
+					}
+					var insertDelta = Delta.createDelta(INSERT, deltas[0][VALUE], deltas[0][ATTRIBUTES] );
+					deltas.splice(1, 0, Delta.createDelta(INSERT, "\n", deltas[0][ATTRIBUTES] ) );
+					deltas.splice(1, 0, insertDelta);
+					deltas.splice(0, 1); //// remove the "SET" transformation
+					// console.log(deltas);
+				}
+
 				for (var i = 0; i < canvas[EDITOR].blots.length; i++) { //// INSERT DELTAS
 					counter ++
 //					if (counter == 180){console.log(canvas[EDITOR].blots, deltas);die;}
@@ -1594,6 +1634,7 @@ var Shadow = (function(){
 					}
 					for (var j = 0; j < deltas.length; j){
 						var delta = deltas[0];
+
 						var lowerBound = blot.index; 
 						var upperBound = lowerBound + blot.length;
 						var deltaLength = (delta[RETAIN] || delta[DELETE] || 0);
@@ -1774,11 +1815,16 @@ var Shadow = (function(){
 							throw ("Error, Invalid parchment delta. canvas expected insert-transformation, because the operation exceeds the bounds of the document.");
 						}
 						if (index === 0){ ///// bootstrap first delta
-							if (delta.ins !== "\n"){ ///// if not block or container --> throw error --> can insert inline or embed without block.
-								console.log(delta, canvas[EDITOR].blots); //die;
+							if (delta.ins !== "\n"){ ///// if not block or container --> throw error --> can't insert inline or embed without block.
+								console.log(delta, canvas[EDITOR].blots, length); //die;
 								throw ("Error, Invalid parchment delta"); 
+//								console.log(contained, HEAD, lastIndex, canvas, null);
+//								applyDelta(canvas, null, Delta.createDelta(INSERT, "\n"), {contained:contained, position:HEAD, index:lastIndex} );
 							}
 							var lastBlot = canvas[EDITOR].blots[length];
+							if (delta.ins !== "\n"){
+
+							}
 							if (lastBlot) {	var lastIndex = lastBlot.index + lastBlot.length; } else { var lastIndex = 0; }
 							var correction = applyDelta(canvas, null, delta, {contained:contained, position:HEAD, index:lastIndex} );
 							if (correction){ //// Needed for ContainerBlotNormalization();
@@ -2640,7 +2686,6 @@ var Shadow = (function(){
 //			var Undos = [];
 			for (var i = 0; i < Deltas.length ; i++ ) {
 				var _delta = Deltas[i];
-				console.log('receive5',_delta)
 				if (_delta[0][TIMESTAMP] <= lastTimestamp ){ //// If we accidentally get updates twice, ignore.
 					continue;
 				}
@@ -2670,12 +2715,12 @@ var Shadow = (function(){
 			//// Begin by reversing the undo array, then merge the undo deltas.
 			var collabUndo = [];
 			Undos.reverse().map(function(_undo){
-				console.log('receive3', _undo)
+//				console.log('receive3', _undo)
 				var patch = Delta.batchMerge(collabUndo);
 				collabUndo.push(_undo)
 				canvas[EDITOR][UNDOS].splice(OpIndex, 0, Delta.patchDeltas(patch, _undo));//Delta.patchDeltas(newUndo, _undo) );
 			});
-			console.log('receive1', Undos, newUndo);
+//			console.log('receive1', Undos, newUndo);
 			//// Undos should be right. Note that the UNDOS array may include ops that are still in CACHE.
 			canvas[EDITOR][COUNTER] = 0; //// Release the lock on the dirty() & save() counter.
 			if (canvas[EDITOR][CACHE].length > 0) { /// If there are still ops in cache, be sure to fire dirty().
@@ -2725,6 +2770,16 @@ var Shadow = (function(){
 				canvas[EDITOR][UNDOINDEX] = 0;
 			}
 
+			///// The following code is designed to handle URI special characters. It's cleaner to handle this directly in the Request code, but it's here just in case.
+			// delta = delta.map( (deltaObj) =>{ //// Make data safe for POST request. See https://www.w3schools.com/jsref/jsref_encodeURIComponent.asp & https://bytes.com/topic/javascript/answers/906941-how-escape-json-stringfy-ajax-call
+				// if (deltaObj.hasOwnProperty("ins")){
+					// return {"ins":encodeURIComponent(deltaObj["ins"])} 
+				// }
+				// return deltaObj;
+			// });
+
+			var metaDelta = {"ed":canvas.id, "u":"1","t":Date.now()}; //// Attach identifier to deltas. This greatly simplifies callbacks, b/c transmit doesn't have to test for "mk" v. "ed" v. "mv", etc.
+			delta.splice(0, 0, metaDelta);
 			callback.call(canvas, delta, TIMESTAMP).then(function(response){
 				receive(canvas, response, delta, undo);
 			})
@@ -2757,6 +2812,9 @@ var Shadow = (function(){
 
 		function update (canvas, deltas) { //// Intended for delta operations that occur due to other user's work. Already saved to permanent storage & tend to already be consolidated.
 			canvas[EDITOR][OPS].push(deltas);
+			if (deltas[0].hasOwnProperty(SET)){
+				console.log("Somalia")
+			}
 			var undo = Transform.Delta.applyDeltas(canvas, deltas);
 			canvas[EDITOR][UNDOS].push(undo);
 		}
@@ -2861,6 +2919,29 @@ var Shadow = (function(){
 			var META = 4;
 			var CAPS = 8;
 
+			function getOS() {
+				var userAgent = window.navigator.userAgent,
+					platform = window.navigator.platform,
+					macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'],
+					windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'],
+					iosPlatforms = ['iPhone', 'iPad', 'iPod'],
+					os = null;
+				if (macosPlatforms.indexOf(platform) !== -1) {
+				  os = 'Mac OS';
+				} else if (iosPlatforms.indexOf(platform) !== -1) {
+				  os = 'iOS';
+				} else if (windowsPlatforms.indexOf(platform) !== -1) {
+				  os = 'Windows';
+				} else if (/Android/.test(userAgent)) {
+				  os = 'Android';
+				} else if (!os && /Linux/.test(platform)) {
+				  os = 'Linux';
+				}
+				return os;
+			}
+			  
+			var isMac = (getOS() === "Mac OS");
+
 /*			var keys = {
 				BACKSPACE: 8,
 				TAB: 9,
@@ -2931,7 +3012,7 @@ var Shadow = (function(){
 				'Tab':'tab',
 			};
 			
-			function contextCode(e) {
+			function contextCode (e) {
 				var ret = 0;
 				if (e.shiftKey){
 					ret = ret+SHIFT;	
@@ -2940,7 +3021,11 @@ var Shadow = (function(){
 					ret = ret+CTRL;
 				}
 				if (e.metaKey){
-					ret = ret+META;
+					if (isMac){
+						ret = ret+CTRL; 
+					} else {
+						ret = ret+META;
+					}
 				}
 				if (e.capsKey){
 					ret = ret+CAPS;
@@ -2949,7 +3034,7 @@ var Shadow = (function(){
 
 			}
 
-			return {KeyMap:KeyMap, contextCode};
+			return {KeyMap:KeyMap, contextCode:contextCode };
 		})()
 
 		var Actions = {
@@ -3012,7 +3097,6 @@ var Shadow = (function(){
 
 			},
 			'bold': function (canvas, event, range) { //// TODO: Has experimental STATIC support.
-				console.log('blue', STATIC);
 				if (range.isRange){
 					if (range.inlineFormat.hasOwnProperty(STATIC.BOLD) ){
 						var deltas = [
@@ -3088,7 +3172,7 @@ var Shadow = (function(){
 				return deltas;
 			},
 			'tab': function (canvas, event, range) {
-				console.log(range);
+//				console.log(range);
 				var blockBlots = Range.getBlocksInRange(canvas, range);
 				var container = Parchment.getContainerBlot(canvas[EDITOR].blots, range.startBlot.position);
 				var prevBlot = Parchment.getPreviousBlockOrContainerBlot(canvas[EDITOR].blots, range.startBlot.position-1);
@@ -3109,7 +3193,7 @@ var Shadow = (function(){
 						return;
 					}
 					if (blot.type === Blot.types.CONTAINER) {
-						console.log(blot.index - deltaIndex, blot, deltaIndex);
+//						console.log(blot.index - deltaIndex, blot, deltaIndex);
 						var delta1 = {'retain':blot.index - deltaIndex};
 						var delta2 = {'retain':1, 'attr':{'indent':newIndent} };
 						deltas.push(delta1); deltas.push(delta2);
@@ -3230,7 +3314,6 @@ var Shadow = (function(){
 			} else {
 				setTimeout(function(){ //// refresh range after movement.
 					Range.getFreshRange(canvas);
-//					Range.getFreshRange(this);
 				},5)
 			}
 		}
@@ -3246,6 +3329,7 @@ var Shadow = (function(){
 			canvas.contentEditable = true;
 			canvas.style.whiteSpace = "pre-wrap";
 			canvas[EDITOR] = {blots:[],range:{}};
+			canvas.classList.add("shadowEditor");
 			State.init(canvas, callback);	
 			Range.init(canvas)
 //			canvas[EDITOR].blots = Blot.blotsFromDOM(canvas);
@@ -3292,8 +3376,10 @@ var Shadow = (function(){
 			})
 			canvas.addEventListener('keydown', function(e){
 				var range = canvas[EDITOR].range;
+				console.log(e);
 				if (e.key.length == 1){ //// 1. charKeys
-					if (e.ctrlKey) { /// 1.1 formatShortcut
+//					console.log(KeyBoard, e)
+					if (KeyBoard.contextCode(e) === 2) { /// 1.1 formatShortcut
 						Shortcut(canvas, e, range);
 						if (range.isRange) {
 							Range.restoreRangeByIndex(canvas);

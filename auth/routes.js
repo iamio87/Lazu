@@ -48,6 +48,7 @@ Route.post('/login',
 );
 
 Route.get('/login', function(req, res){
+    console.log("HI");
     res.send(`<html><head></head><body><form action="/auth/login" method="post">
     <div>
         <label>Username:</label>

@@ -128,10 +128,10 @@ var Test = (function(){
     var LAZU = (function(){
         var Outline = (function(){
             function getOutline (){
-                return document.getElementById("list_0").parentElement;
+                return document.getElementById("Node.0").parentElement;
             }
             function getNode (ID){
-                return document.getElementById("list_"+ID);
+                return document.getElementById("Node."+ID);
             }
             function getLastNode (){
                 return getOutline().lastElementChild;

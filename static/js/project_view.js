@@ -264,7 +264,7 @@ var ProjectView = (function(){
 		        Lawccess.project.timestamp = parseFloat(response["timestamp"])
 				Lawccess.project[field_name]=value;
 				if (field_name == "title"){
-					document.getElementById("list_0").children[0].children[0].children[0].textContent = data.title; //// update Outline Header.
+					document.getElementById("Node.0").children[0].children[0].children[0].textContent = data.title; //// update Outline Header.
 				}
 		    } else {
 		        Response.update(data, input_field, Lawccess.project, response)
