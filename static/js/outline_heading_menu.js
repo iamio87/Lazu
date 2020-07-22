@@ -41,7 +41,7 @@ Outline.HeadingOptionMenu.add_listeners_to_outline_heading = function(element){
 	Outline.HeadingOptionMenu.toggle_options_menu(this)
     })*/
     $heading_option_button[0].addEventListener("click",function(event){
-	Outline.HeadingOptionMenu.toggle_options_menu(this)
+	    Outline.HeadingOptionMenu.toggle_options_menu(this)
     })
     $heading_option_button[0].addEventListener("keypress",function(event){
 	if(event.which == 10 || event.which == 13 || event.which == 32) {

@@ -1,15 +1,15 @@
 Outline.OptionMenu = {}
 
 setTimeout(function(){
-    var ul = document.createElement('ul')
-    ul.setAttribute('class','heading_option_list')
-    ul.display="inline:block"
-    ul.innerHTML = '<li class="new_row" tabindex="0">New Row</li><li class="delete_row" tabindex="0">Delete</li><li class="history" tabindex="0">Revisions</li><li class="citation_list" tabindex="0">Toggle Citations</li>'
-    Outline.OptionMenu.Menu = ul
-    Outline.OptionMenu.navigate_options(Outline.OptionMenu.Menu)
-    delete ul
+    var ul = document.createElement('ul');
+    ul.setAttribute('class','heading_option_list');
+	// ul.style.display="inline:block";
+    ul.innerHTML = '<li class="new_row" tabindex="0">New Row</li><li class="delete_row" tabindex="0">Delete</li><li class="history" tabindex="0">Revisions</li><li class="citation_list" tabindex="0">Toggle Citations</li>';
+    Outline.OptionMenu.Menu = ul;
+    Outline.OptionMenu.navigate_options(Outline.OptionMenu.Menu);
+//    delete ul;
 })
-
+/*
 Outline.OptionMenu.toggle_heading_menu = function(button){
     var ul = document.createElement('ul')
     ul.setAttribute('class','heading_option_list')
@@ -21,7 +21,7 @@ Outline.OptionMenu.toggle_heading_menu = function(button){
     console.log(button.children[0])
     Outline.OptionMenu.__init__(button.children[0])
 }
-
+*/
 Outline.OptionMenu.__init__ = function(button){
 	button.addEventListener('click',function(e){/// Open Menu on click
 		Outline.OptionMenu.menu_toggle(e)
@@ -58,11 +58,12 @@ Outline.OptionMenu.close_menu = function(callback, param){
 }
 
 Outline.OptionMenu.open_menu = function(parent){
-    parent.appendChild(Outline.OptionMenu.Menu)
+	parent.appendChild(Outline.OptionMenu.Menu)
+	// Outline.OptionMenu.Menu.style.display="inline-block";
     Outline.OptionMenu._set_option_menu_position(parent)
     Outline.OptionMenu.Menu.children[0].focus()
     setTimeout(function(){ // Must be in timeout, or it may fire on origial click.
-	document.addEventListener('click', Outline.OptionMenu.close_menu)
+		document.addEventListener('click', Outline.OptionMenu.close_menu)
     }, 10)
 }
 

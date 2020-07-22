@@ -11,6 +11,8 @@ var fs = require("fs");
 var ooxml = (function (){
 
     var ATTRIBUTE = "attrs";
+    //var models = require("../../static/models.json");
+    //var models = require("../../static/models.json");
     var INSERT = "ins";
 
     function DocObject (){
@@ -516,7 +518,7 @@ var ooxml = (function (){
     function convert (Deltas){
         //// Initial Integrity Check
         var checkLastDelta = Deltas.slice(-1)[0];
-        console.log('convert', Deltas.slice(-3), Deltas.length)
+        console.log('convert', Deltas.slice(-3), Deltas.length,checkLastDelta)
         if ( ! checkLastDelta.hasOwnProperty(ATTRIBUTE) ){
             checkLastDelta[ATTRIBUTE] = {};
         }
@@ -562,6 +564,7 @@ var ooxml = (function (){
                     }
 
                     /////////////// RANGE ///////////////////
+                    // console.log(17, scopeObj)
                     if (scopeObj["range"] === "tr"){ //// add <w:tr> to <w:tbl>
                         activeRange = Range.convert(DELTA, scopeObj);
                         RangePropertiesOffset = activeRange[1].length;
@@ -636,6 +639,7 @@ var ooxml = (function (){
     })();
 
     var Print = function (filename, Deltas){
+        console.log("PRINT", Deltas);
         var doc = convert(Deltas);
         function print(JSON){
             return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+"\n"+Serialize(JSON) ;
@@ -651,6 +655,7 @@ var ooxml = (function (){
         zip.file('word/theme/theme1.xml', print(doc.themeXML));
         zip.file('word/webSettings.xml', print(doc.webSettingsXML));
         zip.file('word/_rels/document.xml.rels', print(doc.documentXMLrels));
+        console.log("DOCXML", Serialize(doc.documentXML));
         zip.file('word/document.xml', print(doc.documentXML));
         zip.file('word/numbering.xml', print(doc.numberingXML));
 

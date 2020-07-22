@@ -57,11 +57,11 @@ function getAuthorization(PrivilegeLevel){
                     }).catch( () => {
                         req.session.passport.projects[projectID] = 0;
                     })*/
-                    const path = ProjectPath+projectID+"/log"
-                    
+//                    const path = ProjectPath+projectID+"/log"
+                    const path = ProjectPath+projectID+"/permissions.json";                    
                     fsPromises.readFile(path).then( (data) => {
-//                        const permissions = JSON.parse(data);
-                        const permissions = Delta.App.applyDeltaToJSON(JSON.parse('['+data+']'))["Privilege"];
+                       const permissions = JSON.parse(data);
+                        // const permissions = Delta.App.applyDeltaToJSON(JSON.parse('['+data+']'))["Privilege"];
                         req.session.passport.projects[projectID] = permissions[userID] || 0; //
                     }).catch( (err) => {
                         console.log(err);

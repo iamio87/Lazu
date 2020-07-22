@@ -37,7 +37,7 @@ Outline = (function(){
 	var OutlineHeader = function(title) {
 		var ol = document.createElement('OL')
 		ol.setAttribute('class','sortable')
-		ol.innerHTML = '<li id="list_0" value="0" class="outline-head"><div><div class="outline_title"><b>'+title+'</b></div><ul class="outline-element-options"><li class="heading_option_button"><span tabindex="0" class="heading_option_button_span">+</span><ul class="heading_option_list"><li class="new_row" tabindex="0">New Row</li></ul></li></ul></div>'
+		ol.innerHTML = '<li id="Node.0" value="0" class="outline-head"><div><div class="outline_title"><b>'+title+'</b></div><ul class="outline-element-options"><li class="heading_option_button"><span tabindex="0" class="heading_option_button_span">+</span><ul class="heading_option_root"><li class="new_row" tabindex="0">New Row</li></ul></li></ul></div>'
 		return ol
 	}
 
@@ -64,7 +64,7 @@ Outline = (function(){
 		var heading, bodyText
 		data = data || {};
 		var li = document.createElement('LI')
-		li.setAttribute('id','list_'+id)
+		li.setAttribute('id','Node.'+id)
 		li.setAttribute('class','outline-element')
 		li.setAttribute('value',id)
 		li.innerHTML = '<div><div class="disclose"><span></span></div><div class="heading"></div><ul class="outline-element-options"><li class="heading_option_button"><span tabindex="0" class="heading_option_button_span">+</span></li></ul><div class="substance"><div class="content" ></div><!-- div.content --></div><!-- .substance --></div><input name="citation-outline-relationship" class="citation-outline-relationship" type="checkbox" value="'+id+'">';
@@ -240,7 +240,7 @@ Outline = (function(){
 	////// Set the width of 'div.heading'.
 		Outline.set_element_width(new_row)
 		var siblings = [];
-		var outline_header = document.getElementById('list_0');
+		var outline_header = document.getElementById('node.0');
 		for (i=0; i<new_row.parentNode.children.length; i++){
 		    if (new_row.parentNode.children[i] != outline_header){
 		        siblings.push(new_row.parentNode.children[i])
@@ -266,9 +266,11 @@ Outline = (function(){
 		var position = Array.from(element.parentElement.children).indexOf(element);
 		//var parentID = getParentID(element);
 		var user = Lawccess.context.user;
-		var parentId = element.parentNode.parentNode.getAttribute('value') || 0;
+		var parentNumericID = element.parentNode.parentNode.getAttribute('value') || 0; /// We need the value, not the ID, because top-level nodes reach #outline-container instead of #Node.0
+		var parentId = "Node."+parentNumericID+".children";
+		// var parentId = element.parentNode.parentNode.getAttribute("id");
 		var position = Array.from(element.parentNode.children).indexOf(element);
-		if (parentId !== 0){ 
+		if (parentId !== "Node.0.children"){ 
 			position ++; //// insert AFTER current node. 
 			//// b/c top-level nodes must be decremented any to convert from actual position to canonical position, just skip increment.
 		}
@@ -355,8 +357,8 @@ Outline = (function(){
 		    })
 		});
 
-		var heading_option_button = $element.children().children('ul').children('.heading_option_button')
-		Outline.OptionMenu.__init__(heading_option_button[0])
+//		var heading_option_button = $element.children().children('ul').children('.heading_option_button')
+		Outline.OptionMenu.__init__(optionMenu)
 
 		add_keyboard_shortcuts(element)
 
@@ -392,7 +394,7 @@ Outline = (function(){
 		}
 		document.getElementById("outline-container").style.width = project_width
 		document.getElementById("outline-container").setAttribute("_width", project_width)
-		document.getElementById("list_0").style.width = project_width-48;
+		document.getElementById("Node.0").style.width = project_width-48;
 		Outline.set_element_width()
 	}
 
@@ -419,7 +421,7 @@ Outline = (function(){
 		for (i=0;i<_old_siblings.length;i++){old_siblings.push(_old_siblings[i])}
 		
 		Outline.set_element_width()
-		if (ui.item.attr('id') == "list_0"){ // Disables helper <li> from being moved. 0 never conflicts with db id's.
+		if (ui.item.attr('id') == "Node.0"){ // Disables helper <li> from being moved. 0 never conflicts with db id's.
 		    
 		    var empty_ol = ui.item.parent('ol')
 		    $('ol.sortable').nestedSortable('cancel');
@@ -429,7 +431,7 @@ Outline = (function(){
 		        empty_ol.remove()
 		    }
 		    ui.item.width(ui.item.parent().width()) // Make sure it returns to proper size upon return after being cancelled.
-		} else if (ui.item.parent('ol').parent().attr('id') == "list_0") { // Disables helper <li> from accepting children.
+		} else if (ui.item.parent('ol').parent().attr('id') == "Node.0") { // Disables helper <li> from accepting children.
 	// When we cancel the children; we have to do some manual house-cleaning
 	// to remove the branch classes with the leaf class, and remove the empty
 	// ordered list.
@@ -439,7 +441,7 @@ Outline = (function(){
 		    $('ol.sortable').nestedSortable('cancel');
 		    empty_ol.remove()
 		    ui.item.width(ui.item.parent().width()) // Make sure it returns to proper size upon return.
-		} else if (ui.item.next().attr('id') == "list_0") { // No placing elements above #list_0.
+		} else if (ui.item.next().attr('id') == "Node.0") { // No placing elements above #node.0.
 		    $('ol.sortable').nestedSortable('cancel');
 		    ui.item.width(ui.item.parent().width()) // Make sure it returns to proper size upon return.
 		} else { //// All conditions are satisfied.
@@ -449,7 +451,7 @@ Outline = (function(){
 		            var _old_siblings = []
 		            var old_parent_id = "0"
 		            var new_parent_id = "0"
-		            var outline_header = document.getElementById('list_0')
+		            var outline_header = document.getElementById('node.0')
 		            var element_id = elements.element.getAttribute('value')
 		            for (i in elements.new_siblings){
 		                if (elements.new_siblings[i] != outline_header){
@@ -519,11 +521,12 @@ Outline = (function(){
 	function movement_update (ui){
 		var element = ui.item[0]
 		var _new_siblings = element.parentNode.children;
-		var new_parent_id = element.parentNode.parentNode.getAttribute("value") || 0;
+		var new_parent_numeric_id = element.parentNode.parentNode.getAttribute("value") || 0;
+		var new_parent_id = "Node."+new_parent_numeric_id+".children";
 		var old_parent =  ui.sender;
 		var position = Array.from(element.parentElement.children).indexOf(element);
 		var VALIDATOR = 0;
-		if (new_parent_id === 0){ //// b/c of Title Row, we have to adjust
+		if (new_parent_id === "Node.0.children"){ //// b/c of Title Row, we have to adjust
 			position --;
 		}
 		var delta = {
@@ -552,50 +555,15 @@ Outline = (function(){
 			}
 		});
 	};
-//	movement_update = movement_update1;
-/*
-	var add_elements_to_outline = function(order, data, parent, depth=0){
-		order.map(function(pk, index, array){
-			var element = Outline.nestedListRow(pk, data.outlineElements[pk])
-			add_listeners_to_outline_rows(element)
-			parent.appendChild(element)
-		    if (data.outlineElements[pk].order != ""){
-		        element.appendChild(document.createElement('OL'))
-				if (element.getAttribute('class') != "outline-element mjs-nestedSortable-branch mjs-nestedSortable-expanded"){
-					element.setAttribute('class','outline-element mjs-nestedSortable-branch mjs-nestedSortable-collapsed')
-				}
-				try {
-					var new_order = data.outlineElements[pk].order.split(',')
-				} catch(e){
-					var new_order = data.outlineElements[pk].order;
-				}
-				if (new_order.indexOf(pk) > -1){ /// sanity check for corrupt data causing infinite loop
-					new_order.splice(new_order.indexOf(pk), 1)
-				}
-				Outline.add_elements_to_outline(new_order, data, element.children[2], depth+1)
-		    } else {
-				element.setAttribute('class','outline-element mjs-nestedSortable-leaf')
-			}
-		})
-		if (depth==0){ // quick hack: depth is undefined in initial loop --> ensures outline is complete.
-		    Outline.set_outline_size()
-//		    InitNestedSortable();
-			var active_outline_element =$(document.activeElement).parentsUntil('li.outline-element').last().parent()[0]
-			if (active_outline_element.className == "outline-element mjs-nestedSortable-branch mjs-nestedSortable-collapsed"){
-				Outline.go_to_location_hash(active_outline_element.getAttribute('value'))
-			} else {
-			    Outline.go_to_location_hash()
-			}
-		}
-	}*/
+
 
 	var go_to_location_hash = function(id){
 		// we only go to hash location if it is a sorted list element.
 		if (id != null){
-			var element_id = "#list_"+id
+			var element_id = "#Node."+id
 		} else {
 			var id = location.hash.substr(1)
-			var element_id = "#list_"+ id
+			var element_id = "#Node."+ id
 		}
 		var parent_list = $(element_id).parentsUntil("ol.sortable").toArray().reverse() // returns all parent elements until the highest <ol>. Then casts the jquery object to array. We reverse the order of the array, so that the DOM objects can be accessed in descending order.
 		var v=[] // empty list outside of the scope of the following for loop.
@@ -618,7 +586,7 @@ Outline = (function(){
 					}
 		            if (v.length == 0){
 						//// we call "click()" twice, because sometimes the Lawccess.Controller.change_context_location doesn't work properly without it in FF.
-		                setTimeout(function(){$("#list_"+id).children('div').children('div.heading').click();$("#list_"+id).children('div').children('div.heading').click();},300)} 
+		                setTimeout(function(){$("#Node."+id).children('div').children('div.heading').click();$("#Node."+id).children('div').children('div.heading').click();},300)} 
 		        }, i*300); // sets the timeout between expanding each row. Note that var i still has the proper value in this closure.
 		    }
 		}
@@ -714,7 +682,7 @@ Outline = (function(){
 		var sibling = element.previousSibling;
 		if (element.children[0].contains(target)){ // The event listener bubbles. This hack destroys the bubbling behavior for now.
 		    if (sibling != null){ // Must have a preceding sibling to nest under
-		        if (sibling.getAttribute('id') != "list_0"){ // Cannot nest under the Outline Header.
+		        if (sibling.getAttribute('id') != "Node.0"){ // Cannot nest under the Outline Header.
 		            if (sibling.children.length == 2){ // Create an ordered list if it doesn't exist already.
 		                var _ol = document.createElement('ol')
 		                sibling.appendChild(_ol)
@@ -737,7 +705,7 @@ Outline = (function(){
 		var sibling = element.previousSibling;
 		if (element.children[0].contains(target)){ // The event listener bubbles. This hack destroys the bubbling behavior for now.
 		    if (sibling != null){ // Must have a preceding sibling to insert before
-		        if (sibling.getAttribute('id') != "list_0"){ // Cannot move above the Outline Header.
+		        if (sibling.getAttribute('id') != "Node.0"){ // Cannot move above the Outline Header.
 		            sibling.parentElement.insertBefore(element, sibling)
 		            setTimeout(function(){target.focus()},5)
 		            var ui = {'item':$(element),'sender':sender}
@@ -762,8 +730,8 @@ Outline = (function(){
 
 
 	var moveNode = function(diff){
-		var child = document.getElementById("list_"+String(diff.val))
-		var newParent = document.getElementById("list_"+String(diff["new"]))
+		var child = document.getElementById("Node."+String(diff.val))
+		var newParent = document.getElementById("Node."+String(diff["new"]))
 		if (child.contains(newParent)){
 			return false
 		}
@@ -813,7 +781,7 @@ Outline = (function(){
 		outline_ol.classList.add('sortable');
 		outline.appendChild(outline_ol);
 		Outline.set_element_width(outline_ol.children[0]);
-		Outline.HeadingOptionMenu.add_listeners_to_outline_heading($(outline).children('ol').children("li#list_0"));
+		Outline.HeadingOptionMenu.add_listeners_to_outline_heading(document.getElementById("Node.0"));
 		Outline.close_button();
 	    InitNestedSortable(outline_ol);
 		//// If there are child elements to the outline, let's add them now.
@@ -824,7 +792,7 @@ Outline = (function(){
 
 	function getParentID(node){
 		var parentID = node.parentElement.parentElement.getAttribute('id');
-/*		if (parentID.substr(0,4) === "list_") {
+/*		if (parentID.substr(0,4) === "Node.") {
 			parentID = oldParentID.substr(4);
 		} else {
 			parentID = 0;
@@ -836,17 +804,19 @@ Outline = (function(){
 	var API = (function(){
 
 		function mv (delta){ //// move()
-			var id = Shadow.App.getDeltaTarget(delta).id || String(delta['mv']);
-			var child = document.getElementById("list_"+id);
-			var newParent = document.getElementById("list_"+String(delta["ptg"]));
+			var target = Shadow.App.getDeltaTarget(delta);
+			var child = document.getElementById(target.model+"."+target.id);
+			var parentTarget = Shadow.App.unpack(delta["ptg"]);
+			var newParent = document.getElementById(parentTarget.model+"."+parentTarget.id);
 			var oldParentID = getParentID(child);
 			var oldList = child.parentElement;
 			var oldPosition = Array.from(child.parentElement.children).indexOf(child);
 			if (child.contains(newParent)){ //// Can't move a node to one of its child nodes
 				return false;
 			}
+			// console.log('mv', target, parentTarget, oldParentID)
 			var index = delta['pos'];
-			if (delta["ptg"] != 0){
+			if (delta["ptg"] != "Node.0.children"){
 				if (newParent.children.length < 3){
 					var OL = document.createElement("OL");
 					newParent.appendChild(OL);
@@ -870,11 +840,14 @@ Outline = (function(){
 		}
 
 		function mk (delta, focus){ ///// make()
-			var id = Shadow.App.getDeltaTarget(delta).id || String(delta['mk']);
-			var child = nestedListRow(id);
-			var newParent = document.getElementById("list_"+String(delta["ptg"]));
+			var target = Shadow.App.getDeltaTarget(delta);//.id || String(delta['mk']);
+			var child = nestedListRow(target.id);
+			var parentTarget = Shadow.App.unpack(delta["ptg"]);
+			// console.log('mk', target, parentTarget)
+//			var parentNumericID = delta["ptg"].slice(5); /// remove "Node." from ID. Nested Sortable has hard-coded limitations on ID's.
+			var newParent = document.getElementById(parentTarget.model+"."+parentTarget.id);
 			var index = delta['pos'];
-			if (delta["ptg"] != 0){
+			if (delta["ptg"] != "Node.0.children"){
 				if (newParent.children.length < 3){
 					var OL = document.createElement("OL");
 					newParent.appendChild(OL);
@@ -898,8 +871,8 @@ Outline = (function(){
 
 		function rm (delta){ //// remove()
 			var id = Shadow.App.getDeltaTarget(delta).id || String(delta['rm']);
-			var child = document.getElementById("list_"+id);
-//			var child = document.getElementById("list_"+String(delta['rm']));
+			var child = document.getElementById("Node."+id);
+//			var child = document.getElementById("Node."+String(delta['rm']));
 			var parentList = child.parentElement;
 			var parentID = getParentID(child);
 			var position = Array.from(parentList.children).indexOf(child);
@@ -1035,8 +1008,8 @@ Outline.update_outline = function(){
             for (key in Lawccess.data.outlineElements){ 
                 if (matching_keys.indexOf(key) == -1){ ///// A deleted outline Element
                     delete Lawccess.data.outlineElements[key]
-                    var list_id = "list_"+key
-                    var element = document.getElementById(list_id)
+                    var node.id = "Node."+key
+                    var element = document.getElementById(node.id)
                     var parent = element.parentElement
                     element.remove()
                     if (parent.children.length == 0){
@@ -1050,16 +1023,16 @@ Outline.update_outline = function(){
                         Lawccess.data.outlineElements[key] = response[key]
                     }
                     for (key in response){
-                        var list_element
+                        var node.element
                         try { // See if the element already exists in the outline.
-                            list_element = document.getElementById('list_'+key)
-                            var parent = list_element.parentElement.parentElement
+                            node.element = document.getElementById('node.'+key)
+                            var parent = node.element.parentElement.parentElement
                             //// Title div
-							var title_div = $(list_element).children('div').children('div.heading')[0]
+							var title_div = $(node.element).children('div').children('div.heading')[0]
                             title_div.innerHTML = Markup.markup_to_html(Lawccess.data.outlineElements[key].heading);
                             Markup.markup_to_html(title_div)
                             //// Description div
-							var description_div = $(list_element).children('div').children('div.substance').children('div.content')[0]
+							var description_div = $(node.element).children('div').children('div.substance').children('div.content')[0]
                             description_div.innerHTML = Markup.markup_to_html(Lawccess.data.outlineElements[key].content);
                             Markup.markup_to_html(description_div)
                         } catch(e) { // Else we create the element, and hide it away for now.
@@ -1073,12 +1046,12 @@ Outline.update_outline = function(){
                     var _order =Lawccess.context.outline.order.split(',') 
                     for (key in _order){
                         var pk = _order[key]
-                        var list_id = 'list_'+pk
-                        var element = document.getElementById(list_id)
+                        var node.id = 'node.'+pk
+                        var element = document.getElementById(node.id)
                         document.getElementById('outline-container').getElementsByTagName('ol')[0].appendChild(element)
                     }
                     for (key in response){
-                        var parent = document.getElementById("list_"+key)
+                        var parent = document.getElementById("Node."+key)
                         if (Lawccess.data.outlineElements[key].order != ""){
                             var parent_order = Lawccess.data.outlineElements[key].order.split(',')
                             if (parent.getElementsByTagName('ol').length == 0){
@@ -1086,7 +1059,7 @@ Outline.update_outline = function(){
                             }
                             for (var key_2 in parent_order){
                                 var pk = parent_order[key_2]
-                                parent.getElementsByTagName('ol')[0].appendChild(document.getElementById('list_'+pk))
+                                parent.getElementsByTagName('ol')[0].appendChild(document.getElementById('node.'+pk))
                             }
                             if (parent.getAttribute('class') == "outline-element mjs-nestedSortable-leaf"){ //// Make sure that class changes
                                 parent.setAttribute('class', "outline-element mjs-nestedSortable-branch mjs-nestedSortable-collapsed")

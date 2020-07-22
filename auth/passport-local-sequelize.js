@@ -1,4 +1,4 @@
-var util = require('util'),
+/*var util = require('util'),
     crypto = require('crypto'),
     _ = require('lodash'),
     Sequelize = require('sequelize'),
@@ -332,7 +332,7 @@ var defineUser = function (sequelize, extraFields, attachOptions) {
 
     return User;
 };
-
+*/
 module.exports = {
     defaultAttachOptions: defaultAttachOptions,
     defaultUserSchema: defaultUserSchema,
