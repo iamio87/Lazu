@@ -3,6 +3,8 @@ try {
     settings = require("./local_settings")
 } catch(e){}
 
+const DEBUG = true;
+
 const App = (function(){
 
     const fs = require("fs");
@@ -103,6 +105,9 @@ const App = (function(){
 //        passport.use(User.createStrategy());
         passport.use(new LocalStrategy(
             (username, password, done) => {
+		if (DEBUG){
+		    return done(null, {id:1, username:username});
+		}
                 var User = require('./auth/store').User;
                 return User.authenticate(username, password)
                 .then( (auth) =>{
@@ -152,7 +157,7 @@ const App = (function(){
 		passphrase: '$#iamenough$#'
 	    },
 	    app
-	).listen(process.env.PORT, '192.168.4.38', onListen);
+	).listen(process.env.PORT, '0.0.0.0', onListen);
 
         app.use(function(req, res, next){ /// debugging middleware.
             req.app = app; //// attach App to req for use of Models in Views.

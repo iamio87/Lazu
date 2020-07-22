@@ -1683,4 +1683,8 @@
 [{"ed":"Node.490.content","u":1,"t":1550426591689},{"retain":1856},{"ins":" https://www.revealnews.org/article/oracle-and-palantir-said-diversity-figures-were-trade-secrets-the-real-secret-embarrassing-numbers/"}],
 [{"ed":"Node.490.content","u":1,"t":1550426594184},{"retain":1857},{"ins":" && "}],
 [{"ed":"Node.490.content","u":1,"t":1551038665019},{"retain":1995},{"ins":"\nhttps://blog.mozilla.org/blog/2019/01/25/mozilla-fosters-the-next-generation-of-women-in-emerging-technologies/?utm_source=www.mozilla.org&utm_medium=referral&utm_campaign=homepage&utm_content=card"}],
-[{"ed":"Node.490.content","u":1,"t":1551038667047},{"retain":1995},{"retain":1,"attr":{"range":"text"}}]
+[{"ed":"Node.490.content","u":1,"t":1551038667047},{"retain":1995},{"retain":1,"attr":{"range":"text"}}],
+[{"ed":"Node.482.heading","U":1,"T":1594859940213},{"retain":29},{"ins":" See what's going on!!"}],
+[{"mv":"Node.482","ptg":0,"pos":1,"U":1,"T":1595182727449}],
+[{"mv":"Node.482","ptg":0,"pos":2,"U":1,"T":1595182759510}],
+[{"ed":"Node.482.heading","U":1,"T":1595183114069},{"ins":"\n","range":"text"}]
