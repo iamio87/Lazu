@@ -12,6 +12,7 @@
     "jszip": "^3.1.5",
     "knex": "^0.17.6",
     "mongoose": "^5.3.12",
+    "package.json": "^2.0.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "passport-local-sequelize": "^0.9.0",
@@ -21,7 +22,6 @@
     "retry": "^0.12.0",
     "sequelize": "^4.44.3"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
