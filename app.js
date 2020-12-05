@@ -2,7 +2,6 @@ var settings = require("./settings");
 try {
     settings = require("./local_settings")
 } catch(e){}
-const DEBUG = true;
 
 const DEBUG = true;
 
