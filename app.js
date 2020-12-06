@@ -2,11 +2,13 @@ var settings = require("./settings");
 try {
     settings = require("./local_settings")
 } catch(e){}
+
 const DEBUG = true;
 
 const App = (function(){
-   
-    const http = require('http');
+
+    const fs = require("fs");
+    const https = require('https');
     const express = require("express");
     const app = express();
 //    const es6Renderer = require('express-es6-template-engine');
@@ -144,11 +146,21 @@ const App = (function(){
     
         // Display the startup message.
         function onListen() {
-            console.log('Lazu is up and running. http://localhost:%s/', process.env.PORT);
+            console.log('Lazu is up and running. https://localhost:%s/', process.env.PORT);
         }
     
         // Start the server.
-        http.createServer(app).listen(process.env.PORT, onListen);
+	var privateKey = fs.readFileSync( __dirname + '/key.pem', "utf8" );
+	var certificate = fs.readFileSync( __dirname + '/cert.pem', "utf8" );
+	
+        https.createServer(
+	    {
+		key:privateKey,
+		cert:certificate,
+		passphrase: '$#iamenough$#'
+	    },
+	    app
+	).listen(process.env.PORT, '0.0.0.0', onListen);
 
         app.use(function(req, res, next){ /// debugging middleware.
             req.app = app; //// attach App to req for use of Models in Views.

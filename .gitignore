@@ -12,6 +12,8 @@ lawccess_db
 nginxConfig
 media/
 settings.json
+key.pem
+cert.pem
 
 ########## Python ###############
 # Byte-compiled / optimized / DLL files

@@ -5,28 +5,30 @@
     var app,
         bodyParser,
         express,
-		fs,
-		fsPromises,
-        http,
+	fs,
+	fsPromises,
+        https,
         routes,
         session,
         sessionConfig,
         timeout;
 
     // Require application dependencies.
-	fs = require('fs');
-	fsPromises = require('fs').promises;
-    http = require('http');
+    fs = require('fs');
+    fsPromises = require('fs').promises;
+    https = require('https');
 	// routes = require('./server/routes');
     express = require('express');
     session = require('express-session');
 //    timeout = require('connect-timeout');
-	bodyParser = require('body-parser');
+    bodyParser = require('body-parser');
 	const Model = require("./static/models.js");
 	const STATIC = require("./static/static-vars.json"); //// Some definitions to standardize Delta operations
+
 //	const DB = require("./db/index");
-//	const Delta = require("./static/delta.js").default;
+//	const Delta = require("./delta.js").default;
 //	console.log('db', DB);
+
 
     // If deployed in our demo site, we store the sessions using Redis.
     // Locally, we store the sessions in memory.
@@ -37,7 +39,7 @@
     };
 
     // Create our application and register its dependencies
-	app = express();
+    app = express();
     app.use(bodyParser.json());
     app.use(session(sessionConfig));
 //    app.use(timeout('30s'));
@@ -212,9 +214,20 @@
     
     // Display the startup message.
     function onListen() {
-        console.log('Lazu is up and running. http://localhost:%s/', process.env.PORT);
+        console.log('Lazu is up and running. https://localhost:%s/', process.env.PORT);
     }
 
     // Start the server.
-    http.createServer(app).listen(process.env.PORT, onListen);
+
+    var privateKey = fs.readFileSync( __dirname + '/key.pem', "utf8" );
+    var certificate = fs.readFileSync( __dirname + '/cert.pem', "utf8" );
+    
+    https.createServer(
+	{
+	    key:privateKey,
+	    cert:certificate,
+	    passphrase: '$#iamenough$#'
+	},
+	app
+    ).listen(process.env.PORT, '192.168.4.39', onListen);
 }());

@@ -33,10 +33,8 @@ async function createProject(req){
 
 }
 
-
-
 if (module){
     module.exports = db;
 }
 
-//module.exports = sequelize;
+

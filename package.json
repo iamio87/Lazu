@@ -4,7 +4,7 @@
   "description": "Lazu server",
   "main": "index.js",
   "dependencies": {
-    "bcrypt": "^3.0.2",
+    "bcrypt": "^3.0.8",
     "express": "^4.17.1",
     "express-es6-template-engine": "^2.1.6",
     "express-promise-router": "^3.0.3",
