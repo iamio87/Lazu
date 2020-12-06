@@ -10,7 +10,7 @@
     "express-promise-router": "^3.0.3",
     "express-session": "^1.15.6",
     "jszip": "^3.1.5",
-    "knex": "^0.17.6",
+    "knex": "^0.19.5",
     "mongoose": "^5.3.12",
     "package.json": "^2.0.1",
     "passport": "^0.4.0",
